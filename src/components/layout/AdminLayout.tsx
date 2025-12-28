@@ -13,6 +13,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
+import { ToastManager } from "../ui/ToastManager";
 
 type MenuItem = {
   to: string;
@@ -84,6 +85,7 @@ export default function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <ToastManager />
       <div className="grid min-h-screen grid-cols-[260px_1fr]">
         <aside className="border-r border-border bg-sidebar text-sidebar-foreground">
           <div className="flex h-14 items-center justify-between px-4">
@@ -112,7 +114,7 @@ export default function AdminLayout() {
         </aside>
 
         <div className="flex min-w-0 flex-col">
-          <header className="flex h-14 items-center justify-between border-b border-border px-4">
+          <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-background/80 px-4 backdrop-blur-sm">
             <div className="text-sm font-medium">{title}</div>
             <div className="flex items-center gap-3">
               <div className="hidden text-sm text-muted-foreground sm:block">

@@ -4,8 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { applyToken, loginApi } from "../lib/auth";
 import { setOnUnauthorized } from "../lib/api";
 import type { User } from "../types/auth";
-import { useToast } from "./ToastContext";
-import { useAuthStore } from "../store";
+import { useAuthStore, useUiStore } from "../store";
 
 interface AuthContextValue {
   token: string | null;
@@ -18,7 +17,7 @@ interface AuthContextValue {
 const AuthContext = React.createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { showToast } = useToast();
+  const { showToast } = useUiStore();
 
   const token = useAuthStore((s) => s.token);
   const user = useAuthStore((s) => s.user);

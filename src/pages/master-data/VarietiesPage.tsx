@@ -52,7 +52,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontalIcon } from "lucide-react";
 
-import { useToast } from "@/context/ToastContext";
+import { useUiStore } from "@/store";
 import { listMasterRiceTypes } from "@/lib/masterRiceTypes";
 import {
   createMasterRiceVariety,
@@ -288,7 +288,7 @@ function EditVarietyDialog(props: {
 }
 
 export default function VarietiesPage() {
-  const { showToast } = useToast();
+  const { showToast } = useUiStore();
   const queryClient = useQueryClient();
 
   const [search, setSearch] = React.useState("");

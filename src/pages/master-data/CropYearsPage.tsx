@@ -15,7 +15,7 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
-import { useToast } from "@/context/ToastContext";
+import { useUiStore } from "@/store";
 import { createCropYear, listCropYears } from "@/lib/cropYears";
 import type { CropYear } from "@/types/cropYears";
 
@@ -58,7 +58,7 @@ function parseStartYearFromLabel(raw: string): number {
 }
 
 export default function CropYearsPage() {
-  const { showToast } = useToast();
+  const { showToast } = useUiStore();
   const queryClient = useQueryClient();
 
   const [startYearRaw, setStartYearRaw] = React.useState("");

@@ -22,7 +22,7 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { useAuth } from "@/context/AuthContext";
-import { useToast } from "@/context/ToastContext";
+import { useUiStore } from "@/store";
 import { LOGIN_REMEMBER_KEY } from "@/config";
 
 const schema = z.object({
@@ -36,7 +36,7 @@ type FormData = z.infer<typeof schema>;
 export default function Login() {
   const [showPassword, setShowPassword] = React.useState(false);
   const { isAuthenticated, login } = useAuth();
-  const { showToast } = useToast();
+  const { showToast } = useUiStore();
   const navigate = useNavigate();
 
   const {

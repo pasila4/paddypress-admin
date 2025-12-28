@@ -62,7 +62,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { CheckIcon, CopyIcon, MoreHorizontalIcon } from "lucide-react";
 
-import { useToast } from "@/context/ToastContext";
+import { useUiStore } from "@/store";
 import {
   createAdminOrganization,
   deleteAdminOrganization,
@@ -89,7 +89,7 @@ const EDIT_USER_ROLES: Array<{ value: AdminRole; label: string }> = [
 ];
 
 function TempPasswordCopyButton({ userId }: { userId: string }) {
-  const { showToast } = useToast();
+  const { showToast } = useUiStore();
   const [copied, setCopied] = React.useState(false);
 
   const query = useQuery({
@@ -271,7 +271,7 @@ function ActiveBadge({ active }: { active: boolean }) {
 }
 
 export default function OrganizationsPage() {
-  const { showToast } = useToast();
+  const { showToast } = useUiStore();
   const queryClient = useQueryClient();
   const [search, setSearch] = React.useState("");
 

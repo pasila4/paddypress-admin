@@ -30,7 +30,7 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
-import { useToast } from "@/context/ToastContext";
+import { useUiStore } from "@/store";
 import { listCropYears } from "@/lib/cropYears";
 import { listMasterRiceTypes } from "@/lib/masterRiceTypes";
 import { listSeasonBagRates, upsertSeasonBagRates } from "@/lib/seasonBagRates";
@@ -62,7 +62,7 @@ function truncateToTwoDecimals(num: number): string {
 }
 
 export default function BagRatesPage() {
-  const { showToast } = useToast();
+  const { showToast } = useUiStore();
   const queryClient = useQueryClient();
 
   const cropYearsQuery = useQuery({
