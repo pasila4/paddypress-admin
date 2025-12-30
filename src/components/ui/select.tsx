@@ -6,7 +6,59 @@ import { Select as SelectPrimitive } from "@base-ui/react/select"
 import { cn } from "@/lib/utils"
 import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from "lucide-react"
 
-const Select = SelectPrimitive.Root
+type DerivedSelectItem = {
+  value: string
+  label: string
+}
+
+function extractLabelText(node: React.ReactNode): string | null {
+  if (node === null || node === undefined || typeof node === "boolean") return null
+  if (typeof node === "string" || typeof node === "number") return String(node)
+  if (Array.isArray(node)) {
+    const parts = node
+      .map((n) => extractLabelText(n))
+      .filter((v): v is string => Boolean(v))
+    return parts.length > 0 ? parts.join("") : null
+  }
+  if (React.isValidElement<{ children?: React.ReactNode }>(node)) {
+    return extractLabelText(node.props.children)
+  }
+  return null
+}
+
+function deriveItems(children: React.ReactNode): DerivedSelectItem[] {
+  const items: DerivedSelectItem[] = []
+
+  React.Children.forEach(children, (child) => {
+    if (!React.isValidElement<{ value?: unknown; children?: React.ReactNode }>(child)) return
+
+    const childValue = child.props.value
+    if (typeof childValue === "string") {
+      const label = extractLabelText(child.props.children)
+      if (label !== null) items.push({ value: childValue, label })
+    }
+
+    if (child.props.children) {
+      items.push(...deriveItems(child.props.children))
+    }
+  })
+
+  return items
+}
+
+type SelectProps = Omit<SelectPrimitive.Root.Props<string>, "items"> & {
+  items?: DerivedSelectItem[]
+}
+
+function Select({ items, children, ...props }: SelectProps) {
+  const derivedItems = React.useMemo(() => (items ? items : deriveItems(children)), [children, items])
+
+  return (
+    <SelectPrimitive.Root items={derivedItems} {...props}>
+      {children}
+    </SelectPrimitive.Root>
+  )
+}
 
 function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
   return (
@@ -106,7 +158,10 @@ function SelectLabel({
   return (
     <SelectPrimitive.GroupLabel
       data-slot="select-label"
-      className={cn("text-muted-foreground px-2 py-1.5 text-xs", className)}
+      className={cn(
+        "text-muted-foreground sticky top-0 z-10 -mx-1 px-2 py-1.5 text-xs bg-popover border-b border-border/50",
+        className
+      )}
       {...props}
     />
   )

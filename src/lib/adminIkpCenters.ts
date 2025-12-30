@@ -50,7 +50,7 @@ export async function listAdminIkpCenters(params: {
 
 export async function createAdminIkpCenter(payload: CreateAdminIkpCenterRequest) {
   const validated = CreateAdminIkpCenterRequestSchema.safeParse(payload);
-  if (!validated.success) throw new Error("Check the IKP center details and try again.");
+  if (!validated.success) throw new Error("Check the center details and try again.");
 
   const res = await apiFetch("/admin/ikp-centers", {
     method: "POST",
@@ -62,9 +62,19 @@ export async function createAdminIkpCenter(payload: CreateAdminIkpCenterRequest)
   return parsed.data;
 }
 
+export async function deleteAdminIkpCenterPermanently(id: string) {
+  const res = await apiFetch(`/admin/ikp-centers/${encodeURIComponent(id)}/permanent`, {
+    method: "DELETE",
+  });
+
+  const parsed = AdminIkpCenterResponseSchema.safeParse(res);
+  if (!parsed.success) throw new Error("Unexpected response from server.");
+  return parsed.data;
+}
+
 export async function updateAdminIkpCenter(id: string, payload: UpdateAdminIkpCenterRequest) {
   const validated = UpdateAdminIkpCenterRequestSchema.safeParse(payload);
-  if (!validated.success) throw new Error("Check the IKP center details and try again.");
+  if (!validated.success) throw new Error("Check the center details and try again.");
 
   const res = await apiFetch(`/admin/ikp-centers/${encodeURIComponent(id)}`, {
     method: "PATCH",

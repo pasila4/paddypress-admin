@@ -9,6 +9,7 @@ import {
   Tag,
   MapPinned,
   Wheat,
+  Warehouse
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -52,8 +53,8 @@ const sections: MenuSection[] = [
     items: [
       { to: "/master-data/crop-years", label: "Crop Years", icon: <NotebookTabs className="size-4" /> },
       { to: "/master-data/bag-rates", label: "Bag Rates", icon: <Tag className="size-4" /> },
-      { to: "/master-data/ikp", label: "IKP Master", icon: <MapPinned className="size-4" /> },
-      { to: "/master-data/ikp-centers", label: "IKP Centers", icon: <Tag className="size-4" /> },
+      { to: "/master-data/locations", label: "Locations", icon: <MapPinned className="size-4" /> },
+      { to: "/master-data/ikp-centers", label: "Centers", icon: <Warehouse className="size-4" /> },
     ],
   },
 ];

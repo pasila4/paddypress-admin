@@ -44,6 +44,16 @@ export async function listAdminIkpStates(params: {
   return parsed.data;
 }
 
+export async function deleteAdminIkpStatePermanently(id: string) {
+  const res = await apiFetch(`/admin/ikp-states/${encodeURIComponent(id)}/permanent`, {
+    method: "DELETE",
+  });
+
+  const parsed = AdminIkpStateResponseSchema.safeParse(res);
+  if (!parsed.success) throw new Error("Unexpected response from server.");
+  return parsed.data;
+}
+
 export async function createAdminIkpState(payload: CreateAdminIkpStateRequest) {
   const validated = CreateAdminIkpStateRequestSchema.safeParse(payload);
   if (!validated.success) throw new Error("Check the state details and try again.");
@@ -116,6 +126,16 @@ export async function createAdminIkpDistrict(payload: CreateAdminIkpDistrictRequ
   return parsed.data;
 }
 
+export async function deleteAdminIkpDistrictPermanently(id: string) {
+  const res = await apiFetch(`/admin/ikp-districts/${encodeURIComponent(id)}/permanent`, {
+    method: "DELETE",
+  });
+
+  const parsed = AdminIkpDistrictResponseSchema.safeParse(res);
+  if (!parsed.success) throw new Error("Unexpected response from server.");
+  return parsed.data;
+}
+
 export async function updateAdminIkpDistrict(id: string, payload: UpdateAdminIkpDistrictRequest) {
   const validated = UpdateAdminIkpDistrictRequestSchema.safeParse(payload);
   if (!validated.success) throw new Error("Check the district details and try again.");
@@ -174,10 +194,22 @@ export async function createAdminIkpMandal(payload: CreateAdminIkpMandalRequest)
   return parsed.data;
 }
 
+export async function deleteAdminIkpMandalPermanently(id: string) {
+  const res = await apiFetch(`/admin/ikp-mandals/${encodeURIComponent(id)}/permanent`, {
+    method: "DELETE",
+  });
+
+  const parsed = AdminIkpMandalResponseSchema.safeParse(res);
+  if (!parsed.success) throw new Error("Unexpected response from server.");
+  return parsed.data;
+}
+
 export async function listAdminIkpVillages(params: {
   page?: number;
   limit?: number;
   search?: string;
+  stateId?: string;
+  districtId?: string;
   mandalId?: string;
   includeInactive?: boolean;
 } = {}) {
@@ -185,6 +217,8 @@ export async function listAdminIkpVillages(params: {
   if (typeof params.page === "number") qs.set("page", String(params.page));
   if (typeof params.limit === "number") qs.set("limit", String(params.limit));
   if (params.search && params.search.trim() !== "") qs.set("search", params.search.trim());
+  if (params.stateId && params.stateId.trim() !== "") qs.set("stateId", params.stateId.trim());
+  if (params.districtId && params.districtId.trim() !== "") qs.set("districtId", params.districtId.trim());
   if (params.mandalId && params.mandalId.trim() !== "") qs.set("mandalId", params.mandalId.trim());
   if (typeof params.includeInactive === "boolean") qs.set("includeInactive", String(params.includeInactive));
 
@@ -201,6 +235,16 @@ export async function createAdminIkpVillage(payload: CreateAdminIkpVillageReques
   const res = await apiFetch("/admin/ikp-villages", {
     method: "POST",
     body: JSON.stringify(validated.data),
+  });
+
+  const parsed = AdminIkpVillageResponseSchema.safeParse(res);
+  if (!parsed.success) throw new Error("Unexpected response from server.");
+  return parsed.data;
+}
+
+export async function deleteAdminIkpVillagePermanently(id: string) {
+  const res = await apiFetch(`/admin/ikp-villages/${encodeURIComponent(id)}/permanent`, {
+    method: "DELETE",
   });
 
   const parsed = AdminIkpVillageResponseSchema.safeParse(res);

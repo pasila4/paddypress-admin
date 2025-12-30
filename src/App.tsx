@@ -12,7 +12,8 @@ import VarietiesPage from "./pages/master-data/VarietiesPage";
 import CropYearsPage from "./pages/master-data/CropYearsPage";
 import BagRatesPage from "./pages/master-data/BagRatesPage";
 import IkpCentersPage from "./pages/master-data/IkpCentersPage";
-import IkpMasterPage from "./pages/master-data/IkpMasterPage";
+import LocationsMasterPage from "./pages/master-data/LocationsMasterPage";
+import LegacyIkpLocationsRedirect from "./pages/master-data/LegacyIkpLocationsRedirect";
 
 function RedirectIfAuthed({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
@@ -40,14 +41,25 @@ export default function App() {
           <Route path="/master-data/varieties" element={<VarietiesPage />} />
           <Route path="/master-data/crop-years" element={<CropYearsPage />} />
           <Route path="/master-data/bag-rates" element={<BagRatesPage />} />
-          <Route path="/master-data/ikp" element={<IkpMasterPage />} />
+          <Route path="/master-data/locations" element={<LocationsMasterPage />} />
+          <Route path="/master-data/ikp" element={<LegacyIkpLocationsRedirect />} />
           <Route path="/master-data/ikp-centers" element={<IkpCentersPage />} />
-          <Route path="/master-data/ikp-states" element={<Navigate to="/master-data/ikp?tab=states" replace />} />
+          <Route
+            path="/master-data/ikp-states"
+            element={<Navigate to="/master-data/locations?tab=states" replace />}
+          />
           <Route
             path="/master-data/ikp-districts"
-            element={<Navigate to="/master-data/ikp?tab=districts" replace />} 
+            element={<Navigate to="/master-data/locations?tab=districts" replace />} 
           />
-          <Route path="/master-data/ikp-mandals" element={<Navigate to="/master-data/ikp?tab=mandals" replace />} />
+          <Route
+            path="/master-data/ikp-mandals"
+            element={<Navigate to="/master-data/locations?tab=mandals" replace />} 
+          />
+          <Route
+            path="/master-data/ikp-villages"
+            element={<Navigate to="/master-data/locations?tab=villages" replace />} 
+          />
           <Route
             path="/master-data/seasons"
             element={<Navigate to="/master-data/crop-years" replace />}

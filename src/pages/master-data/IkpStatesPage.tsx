@@ -44,13 +44,17 @@ import {
 import { MoreHorizontalIcon } from "lucide-react";
 
 import { useUiStore } from "@/store";
+import { useDebounce } from "@/lib/useDebounce";
 import {
   createAdminIkpState,
   deactivateAdminIkpState,
+  deleteAdminIkpStatePermanently,
   listAdminIkpStates,
   updateAdminIkpState,
 } from "@/lib/adminIkpLocations";
 import type { AdminIkpState } from "@/types/adminIkpLocations";
+
+const DEFAULT_PAGE_SIZE = 10;
 
 const stateSchema = z.object({
   code: z
@@ -58,14 +62,21 @@ const stateSchema = z.object({
     .min(1, "Enter a state code.")
     .max(10, "Max 10 characters.")
     .toUpperCase(),
-  name: z.string().min(1, "Enter a state name.").max(100, "Max 100 characters."),
+  name: z
+    .string()
+    .min(1, "Enter a state name.")
+    .max(100, "Max 100 characters."),
   isActive: z.boolean(),
 });
 
 type StateFormData = z.infer<typeof stateSchema>;
 
 function ActiveBadge({ isActive }: { isActive: boolean }) {
-  return <Badge variant={isActive ? "default" : "outline"}>{isActive ? "Active" : "Inactive"}</Badge>;
+  return (
+    <Badge variant={isActive ? "default" : "outline"}>
+      {isActive ? "Active" : "Inactive"}
+    </Badge>
+  );
 }
 
 function StateDialog(props: {
@@ -124,7 +135,11 @@ function StateDialog(props: {
               <FieldLabel htmlFor="stateName">Name</FieldLabel>
               <InputGroup>
                 <InputGroupAddon>Name</InputGroupAddon>
-                <InputGroupInput id="stateName" placeholder="Andhra Pradesh" {...register("name")} />
+                <InputGroupInput
+                  id="stateName"
+                  placeholder="Andhra Pradesh"
+                  {...register("name")}
+                />
               </InputGroup>
               <FieldError errors={errors.name ? [errors.name] : []} />
             </Field>
@@ -135,7 +150,10 @@ function StateDialog(props: {
                   control={control}
                   name="isActive"
                   render={({ field }) => (
-                    <Checkbox checked={field.value} onCheckedChange={(v) => field.onChange(Boolean(v))} />
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={(v) => field.onChange(Boolean(v))}
+                    />
                   )}
                 />
                 <span>Active</span>
@@ -144,10 +162,21 @@ function StateDialog(props: {
           </FieldGroup>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => props.onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => props.onOpenChange(false)}
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={props.isSaving || !isValid || (props.disableCode ? !isDirty : false)}>
+            <Button
+              type="submit"
+              disabled={
+                props.isSaving ||
+                !isValid ||
+                (props.disableCode ? !isDirty : false)
+              }
+            >
               {props.isSaving ? "Saving…" : "Save"}
             </Button>
           </DialogFooter>
@@ -161,21 +190,38 @@ export default function IkpStatesPage() {
   const { showToast } = useUiStore();
   const queryClient = useQueryClient();
 
-  const [search, setSearch] = React.useState("");
+  const [searchInput, setSearchInput] = React.useState("");
+  const debouncedSearch = useDebounce(searchInput, 300);
   const [includeInactive, setIncludeInactive] = React.useState(true);
+
+  const [page, setPage] = React.useState(1);
+  const [limit] = React.useState(DEFAULT_PAGE_SIZE);
 
   const [createOpen, setCreateOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<AdminIkpState | null>(null);
-  const [deactivateTarget, setDeactivateTarget] = React.useState<AdminIkpState | null>(null);
+  const [deactivateTarget, setDeactivateTarget] =
+    React.useState<AdminIkpState | null>(null);
+  const [deleteTarget, setDeleteTarget] = React.useState<AdminIkpState | null>(null);
+
+  const [createInitialValues, setCreateInitialValues] =
+    React.useState<StateFormData>({
+      code: "",
+      name: "",
+      isActive: true,
+    });
+
+  React.useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, includeInactive]);
 
   const listQuery = useQuery({
-    queryKey: ["adminIkpStates", search, includeInactive],
+    queryKey: ["adminIkpStates", debouncedSearch, includeInactive, page, limit],
     queryFn: () =>
       listAdminIkpStates({
-        search,
+        search: debouncedSearch,
         includeInactive,
-        page: 1,
-        limit: 200,
+        page,
+        limit,
       }),
   });
 
@@ -183,23 +229,42 @@ export default function IkpStatesPage() {
     mutationFn: createAdminIkpState,
     onSuccess: (res) => {
       showToast(res.message ?? "State created.", "success");
-      setCreateOpen(false);
+      setCreateInitialValues({ code: "", name: "", isActive: true });
       void queryClient.invalidateQueries({ queryKey: ["adminIkpStates"] });
     },
     onError: (err) => {
-      showToast(err instanceof Error ? err.message : "Failed to create state.", "error");
+      showToast(
+        err instanceof Error ? err.message : "Failed to create state.",
+        "error"
+      );
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteAdminIkpStatePermanently,
+    onSuccess: (res) => {
+      showToast(res.message ?? "State deleted.", "success");
+      setDeleteTarget(null);
+      void queryClient.invalidateQueries({ queryKey: ["adminIkpStates"] });
+    },
+    onError: (err) => {
+      showToast(err instanceof Error ? err.message : "Failed to delete state.", "error");
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: (args: { id: string; payload: StateFormData }) => updateAdminIkpState(args.id, args.payload),
+    mutationFn: (args: { id: string; payload: StateFormData }) =>
+      updateAdminIkpState(args.id, args.payload),
     onSuccess: (res) => {
       showToast(res.message ?? "State updated.", "success");
       setEditing(null);
       void queryClient.invalidateQueries({ queryKey: ["adminIkpStates"] });
     },
     onError: (err) => {
-      showToast(err instanceof Error ? err.message : "Failed to update state.", "error");
+      showToast(
+        err instanceof Error ? err.message : "Failed to update state.",
+        "error"
+      );
     },
   });
 
@@ -211,19 +276,26 @@ export default function IkpStatesPage() {
       void queryClient.invalidateQueries({ queryKey: ["adminIkpStates"] });
     },
     onError: (err) => {
-      showToast(err instanceof Error ? err.message : "Failed to deactivate state.", "error");
+      showToast(
+        err instanceof Error ? err.message : "Failed to deactivate state.",
+        "error"
+      );
     },
   });
 
   const items = listQuery.data?.data.items ?? [];
+  const total = listQuery.data?.data.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / limit));
 
   return (
     <div className="space-y-4">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-4">
           <div className="space-y-1">
-            <CardTitle>IKP States</CardTitle>
-            <div className="text-xs text-muted-foreground">Only Andhra Pradesh (AP) and Telangana (TG) are supported.</div>
+            <CardTitle>States</CardTitle>
+            <div className="text-xs text-muted-foreground">
+              Only Andhra Pradesh (AP) and Telangana (TG) are supported.
+            </div>
           </div>
           <Button onClick={() => setCreateOpen(true)}>New state</Button>
         </CardHeader>
@@ -236,8 +308,8 @@ export default function IkpStatesPage() {
                 <InputGroupInput
                   id="stateSearch"
                   placeholder="Search by name or code"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
                 />
               </InputGroup>
             </Field>
@@ -245,7 +317,10 @@ export default function IkpStatesPage() {
             <Field>
               <FieldLabel>Include inactive</FieldLabel>
               <label className="flex h-7 items-center gap-2 rounded-md border border-border px-2 text-xs">
-                <Checkbox checked={includeInactive} onCheckedChange={(v) => setIncludeInactive(Boolean(v))} />
+                <Checkbox
+                  checked={includeInactive}
+                  onCheckedChange={(v) => setIncludeInactive(Boolean(v))}
+                />
                 <span>Yes</span>
               </label>
             </Field>
@@ -264,20 +339,28 @@ export default function IkpStatesPage() {
               <TableBody>
                 {listQuery.isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center text-xs text-muted-foreground">
+                    <TableCell
+                      colSpan={4}
+                      className="text-center text-xs text-muted-foreground"
+                    >
                       Loading states…
                     </TableCell>
                   </TableRow>
                 ) : items.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center text-xs text-muted-foreground">
+                    <TableCell
+                      colSpan={4}
+                      className="text-center text-xs text-muted-foreground"
+                    >
                       No states found.
                     </TableCell>
                   </TableRow>
                 ) : (
                   items.map((row) => (
                     <TableRow key={row.id}>
-                      <TableCell className="text-xs font-medium">{row.code}</TableCell>
+                      <TableCell className="text-xs font-medium">
+                        {row.code}
+                      </TableCell>
                       <TableCell className="text-xs">{row.name}</TableCell>
                       <TableCell className="text-xs">
                         <ActiveBadge isActive={row.isActive} />
@@ -290,9 +373,19 @@ export default function IkpStatesPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => setEditing(row)}>Edit</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setDeactivateTarget(row)} disabled={!row.isActive}>
+                            <DropdownMenuItem onClick={() => setEditing(row)}>
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => setDeactivateTarget(row)}
+                              disabled={!row.isActive}
+                            >
                               Deactivate
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => setDeleteTarget(row)}
+                            >
+                              Delete
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -304,9 +397,37 @@ export default function IkpStatesPage() {
             </Table>
           </div>
 
+          <div className="flex items-center justify-between gap-3">
+            <div className="text-xs text-muted-foreground">
+              Page {page} of {totalPages} · {total} total
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={listQuery.isLoading || page <= 1}
+              >
+                Previous
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={listQuery.isLoading || page >= totalPages}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+
           {listQuery.isError && (
             <div className="text-xs text-destructive">
-              {listQuery.error instanceof Error ? listQuery.error.message : "Failed to load states."}
+              {listQuery.error instanceof Error
+                ? listQuery.error.message
+                : "Failed to load states."}
             </div>
           )}
         </CardContent>
@@ -316,8 +437,8 @@ export default function IkpStatesPage() {
         open={createOpen}
         onOpenChange={setCreateOpen}
         title="New state"
-        description="Add an IKP state. Only AP and TG are allowed."
-        initialValues={{ code: "", name: "", isActive: true }}
+        description="Add a state. Only AP and TG are allowed."
+        initialValues={createInitialValues}
         onSave={(data) => createMutation.mutate(data)}
         isSaving={createMutation.isPending}
       />
@@ -340,25 +461,60 @@ export default function IkpStatesPage() {
         disableCode
       />
 
-      <Dialog open={Boolean(deactivateTarget)} onOpenChange={(open) => (!open ? setDeactivateTarget(null) : null)}>
+      <Dialog
+        open={Boolean(deactivateTarget)}
+        onOpenChange={(open) => (!open ? setDeactivateTarget(null) : null)}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Deactivate state</DialogTitle>
             <DialogDescription>
-              This will mark the state inactive. Existing districts/mandals/centers will remain.
+              This will mark the state inactive. Existing
+              districts/mandals/centers will remain.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setDeactivateTarget(null)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setDeactivateTarget(null)}
+            >
               Cancel
             </Button>
             <Button
               type="button"
               variant="destructive"
-              onClick={() => deactivateTarget && deactivateMutation.mutate(deactivateTarget.id)}
+              onClick={() =>
+                deactivateTarget &&
+                deactivateMutation.mutate(deactivateTarget.id)
+              }
               disabled={deactivateMutation.isPending}
             >
               {deactivateMutation.isPending ? "Deactivating…" : "Deactivate"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={Boolean(deleteTarget)} onOpenChange={(open) => (!open ? setDeleteTarget(null) : null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete state permanently?</DialogTitle>
+            <DialogDescription>
+              This will permanently delete the state. This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setDeleteTarget(null)}>
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? "Deleting…" : "Delete"}
             </Button>
           </DialogFooter>
         </DialogContent>

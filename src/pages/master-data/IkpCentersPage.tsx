@@ -28,13 +28,6 @@ import {
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -60,30 +53,52 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontalIcon } from "lucide-react";
 
+import {
+  GroupedCombobox,
+  type GroupedComboboxGroup,
+} from "@/components/ui/grouped-combobox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 import { useUiStore } from "@/store";
+import { useDebounce } from "@/lib/useDebounce";
 import {
   createAdminIkpCenter,
   deactivateAdminIkpCenter,
+  deleteAdminIkpCenterPermanently,
   listAdminIkpCenters,
   updateAdminIkpCenter,
 } from "@/lib/adminIkpCenters";
-import type { AdminIkpCenter, UpdateAdminIkpCenterRequest } from "@/types/adminIkpCenters";
+import type {
+  AdminIkpCenter,
+  UpdateAdminIkpCenterRequest,
+} from "@/types/adminIkpCenters";
 import {
   listAdminIkpDistricts,
   listAdminIkpMandals,
   listAdminIkpStates,
   listAdminIkpVillages,
 } from "@/lib/adminIkpLocations";
-import type { AdminIkpDistrict, AdminIkpMandal, AdminIkpState, AdminIkpVillage } from "@/types/adminIkpLocations";
+import type {
+  AdminIkpDistrict,
+  AdminIkpMandal,
+  AdminIkpState,
+  AdminIkpVillage,
+} from "@/types/adminIkpLocations";
 
-const DEFAULT_PAGE_SIZE = 50;
+const DEFAULT_PAGE_SIZE = 10;
 
 const ikpCenterSchema = z.object({
   stateId: z.string().min(1, "Select a state."),
   districtId: z.string().min(1, "Select a district."),
   mandalId: z.string().min(1, "Select a mandal."),
   villageId: z.string().min(1, "Select a village."),
-  name: z.string().min(1, "Enter an IKP center name."),
+  name: z.string().min(1, "Enter a center name."),
   notes: z.string().optional(),
   isActive: z.boolean(),
 });
@@ -99,6 +114,13 @@ function IkpCenterDialog(props: {
   onSave: (data: IkpCenterFormData) => void;
   isSaving: boolean;
   states: AdminIkpState[];
+  districts: AdminIkpDistrict[];
+  mandals: AdminIkpMandal[];
+  villages: AdminIkpVillage[];
+  isStatesLoading: boolean;
+  isDistrictsLoading: boolean;
+  isMandalsLoading: boolean;
+  isVillagesLoading: boolean;
 }) {
   const {
     register,
@@ -114,94 +136,29 @@ function IkpCenterDialog(props: {
     mode: "onChange",
   });
 
+  const selectedStateId = watch("stateId");
+  const selectedDistrictId = watch("districtId");
+  const selectedMandalId = watch("mandalId");
+
+  // Filter districts, mandals, and villages based on selected values
+  const filteredDistricts = React.useMemo(() => {
+    if (!selectedStateId) return [];
+    return props.districts.filter((d) => d.stateId === selectedStateId);
+  }, [props.districts, selectedStateId]);
+
+  const filteredMandals = React.useMemo(() => {
+    if (!selectedDistrictId) return [];
+    return props.mandals.filter((m) => m.districtId === selectedDistrictId);
+  }, [props.mandals, selectedDistrictId]);
+
+  const filteredVillages = React.useMemo(() => {
+    if (!selectedMandalId) return [];
+    return props.villages.filter((v) => v.mandalId === selectedMandalId);
+  }, [props.villages, selectedMandalId]);
+
   React.useEffect(() => {
-    if (props.open) {
-      reset(props.initialValues);
-      prevStateIdRef.current = props.initialValues.stateId;
-      prevDistrictIdRef.current = props.initialValues.districtId;
-    }
+    if (props.open) reset(props.initialValues);
   }, [props.open, props.initialValues, reset]);
-
-  const stateIdValue = watch("stateId");
-  const districtIdValue = watch("districtId");
-  const mandalIdValue = watch("mandalId");
-
-  const prevStateIdRef = React.useRef<string | undefined>(undefined);
-  const prevDistrictIdRef = React.useRef<string | undefined>(undefined);
-  const prevMandalIdRef = React.useRef<string | undefined>(undefined);
-
-  React.useEffect(() => {
-    if (!props.open) return;
-
-    const prev = prevStateIdRef.current;
-    if (prev !== undefined && prev !== stateIdValue) {
-      setValue("districtId", "", { shouldValidate: true, shouldDirty: true });
-      setValue("mandalId", "", { shouldValidate: true, shouldDirty: true });
-      setValue("villageId", "", { shouldValidate: true, shouldDirty: true });
-    }
-    prevStateIdRef.current = stateIdValue;
-  }, [props.open, setValue, stateIdValue]);
-
-  React.useEffect(() => {
-    if (!props.open) return;
-
-    const prev = prevDistrictIdRef.current;
-    if (prev !== undefined && prev !== districtIdValue) {
-      setValue("mandalId", "", { shouldValidate: true, shouldDirty: true });
-      setValue("villageId", "", { shouldValidate: true, shouldDirty: true });
-    }
-    prevDistrictIdRef.current = districtIdValue;
-  }, [props.open, setValue, districtIdValue]);
-
-  React.useEffect(() => {
-    if (!props.open) return;
-
-    const prev = prevMandalIdRef.current;
-    if (prev !== undefined && prev !== mandalIdValue) {
-      setValue("villageId", "", { shouldValidate: true, shouldDirty: true });
-    }
-    prevMandalIdRef.current = mandalIdValue;
-  }, [props.open, setValue, mandalIdValue]);
-
-  const districtsQuery = useQuery({
-    enabled: Boolean(stateIdValue && stateIdValue.trim()),
-    queryKey: ["ikpCenterDistrictsDialog", stateIdValue],
-    queryFn: () =>
-      listAdminIkpDistricts({
-        page: 1,
-        limit: 300,
-        stateId: stateIdValue.trim(),
-        includeInactive: true,
-      }),
-  });
-
-  const villagesQuery = useQuery({
-    enabled: Boolean(mandalIdValue && mandalIdValue.trim()),
-    queryKey: ["ikpCenterVillagesDialog", mandalIdValue],
-    queryFn: () =>
-      listAdminIkpVillages({
-        page: 1,
-        limit: 800,
-        mandalId: mandalIdValue.trim(),
-        includeInactive: true,
-      }),
-  });
-
-  const mandalsQuery = useQuery({
-    enabled: Boolean(districtIdValue && districtIdValue.trim()),
-    queryKey: ["ikpCenterMandalsDialog", districtIdValue],
-    queryFn: () =>
-      listAdminIkpMandals({
-        page: 1,
-        limit: 500,
-        districtId: districtIdValue.trim(),
-        includeInactive: true,
-      }),
-  });
-
-  const districtOptions: AdminIkpDistrict[] = districtsQuery.data?.data.items ?? [];
-  const mandalOptions: AdminIkpMandal[] = mandalsQuery.data?.data.items ?? [];
-  const villageOptions: AdminIkpVillage[] = villagesQuery.data?.data.items ?? [];
 
   return (
     <Dialog open={props.open} onOpenChange={props.onOpenChange}>
@@ -220,7 +177,15 @@ function IkpCenterDialog(props: {
                   control={control}
                   name="stateId"
                   render={({ field }) => (
-                    <Select value={field.value} onValueChange={(v) => field.onChange(v ?? "")}
+                    <Select
+                      value={field.value}
+                      onValueChange={(v) => {
+                        field.onChange(v);
+                        setValue("districtId", "");
+                        setValue("mandalId", "");
+                        setValue("villageId", "");
+                      }}
+                      disabled={props.isStatesLoading}
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select state" />
@@ -246,23 +211,35 @@ function IkpCenterDialog(props: {
                   render={({ field }) => (
                     <Select
                       value={field.value}
-                      onValueChange={(v) => field.onChange(v ?? "")}
-                      disabled={!stateIdValue}
+                      onValueChange={(v) => {
+                        field.onChange(v);
+                        setValue("mandalId", "");
+                        setValue("villageId", "");
+                      }}
+                      disabled={!selectedStateId || props.isDistrictsLoading}
                     >
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder={stateIdValue ? "Select district" : "Select state first"} />
+                        <SelectValue
+                          placeholder={
+                            selectedStateId
+                              ? "Select district"
+                              : "Select state first"
+                          }
+                        />
                       </SelectTrigger>
                       <SelectContent>
-                        {districtOptions.map((d) => (
+                        {filteredDistricts.map((d) => (
                           <SelectItem key={d.id} value={d.id}>
-                            {d.name}{d.isActive ? "" : " (inactive)"}
+                            {d.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   )}
                 />
-                <FieldError errors={errors.districtId ? [errors.districtId] : []} />
+                <FieldError
+                  errors={errors.districtId ? [errors.districtId] : []}
+                />
               </Field>
 
               <Field>
@@ -273,18 +250,25 @@ function IkpCenterDialog(props: {
                   render={({ field }) => (
                     <Select
                       value={field.value}
-                      onValueChange={(v) => field.onChange(v ?? "")}
-                      disabled={!districtIdValue}
+                      onValueChange={(v) => {
+                        field.onChange(v);
+                        setValue("villageId", "");
+                      }}
+                      disabled={!selectedDistrictId || props.isMandalsLoading}
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue
-                          placeholder={districtIdValue ? "Select mandal" : "Select district first"}
+                          placeholder={
+                            selectedDistrictId
+                              ? "Select mandal"
+                              : "Select district first"
+                          }
                         />
                       </SelectTrigger>
                       <SelectContent>
-                        {mandalOptions.map((m) => (
+                        {filteredMandals.map((m) => (
                           <SelectItem key={m.id} value={m.id}>
-                            {m.name}{m.isActive ? "" : " (inactive)"}
+                            {m.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -302,32 +286,40 @@ function IkpCenterDialog(props: {
                   render={({ field }) => (
                     <Select
                       value={field.value}
-                      onValueChange={(v) => field.onChange(v ?? "")}
-                      disabled={!mandalIdValue}
+                      onValueChange={field.onChange}
+                      disabled={!selectedMandalId || props.isVillagesLoading}
                     >
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder={mandalIdValue ? "Select village" : "Select mandal first"} />
+                        <SelectValue
+                          placeholder={
+                            selectedMandalId
+                              ? "Select village"
+                              : "Select mandal first"
+                          }
+                        />
                       </SelectTrigger>
                       <SelectContent>
-                        {villageOptions.map((v) => (
+                        {filteredVillages.map((v) => (
                           <SelectItem key={v.id} value={v.id}>
-                            {v.name}{v.isActive ? "" : " (inactive)"}
+                            {v.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   )}
                 />
-                <FieldError errors={errors.villageId ? [errors.villageId] : []} />
+                <FieldError
+                  errors={errors.villageId ? [errors.villageId] : []}
+                />
               </Field>
 
               <Field>
-                <FieldLabel htmlFor="ikpName">IKP center name</FieldLabel>
+                <FieldLabel htmlFor="ikpName">Center name</FieldLabel>
                 <InputGroup>
                   <InputGroupAddon>Name</InputGroupAddon>
                   <InputGroupInput
                     id="ikpName"
-                    placeholder="E.g. Katakoteswaram IKP Center"
+                    placeholder="E.g. Katakoteswaram Center"
                     {...register("name")}
                   />
                 </InputGroup>
@@ -372,18 +364,25 @@ function IkpCenterDialog(props: {
           </FieldGroup>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => props.onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => props.onOpenChange(false)}
+            >
               Cancel
             </Button>
             <Button
               type="submit"
-              disabled={props.isSaving || !isValid || (props.title.startsWith("Edit") ? !isDirty : false)}
+              disabled={
+                props.isSaving ||
+                !isValid ||
+                (props.title.startsWith("Edit") ? !isDirty : false)
+              }
             >
               {props.isSaving ? "Saving…" : "Save"}
             </Button>
           </DialogFooter>
         </form>
-
       </DialogContent>
     </Dialog>
   );
@@ -392,6 +391,9 @@ function IkpCenterDialog(props: {
 export default function IkpCentersPage() {
   const { showToast } = useUiStore();
   const queryClient = useQueryClient();
+
+  const [searchInput, setSearchInput] = React.useState("");
+  const debouncedSearch = useDebounce(searchInput, 300);
 
   const [filters, setFilters] = React.useState({
     search: "",
@@ -402,12 +404,37 @@ export default function IkpCentersPage() {
     includeInactive: true,
   });
 
-  const [page] = React.useState(1);
+  React.useEffect(() => {
+    setFilters((p) => ({ ...p, search: debouncedSearch }));
+  }, [debouncedSearch]);
+
+  const [page, setPage] = React.useState(1);
   const [limit] = React.useState(DEFAULT_PAGE_SIZE);
 
   const [createOpen, setCreateOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<AdminIkpCenter | null>(null);
-  const [deactivateTarget, setDeactivateTarget] = React.useState<AdminIkpCenter | null>(null);
+  const [deactivateTarget, setDeactivateTarget] =
+    React.useState<AdminIkpCenter | null>(null);
+  const [deleteTarget, setDeleteTarget] = React.useState<AdminIkpCenter | null>(null);
+
+  const [createInitialValues, setCreateInitialValues] =
+    React.useState<IkpCenterFormData>({
+      stateId: "",
+      districtId: "",
+      mandalId: "",
+      villageId: "",
+      name: "",
+      notes: "",
+      isActive: true,
+    });
+
+  const lastCreateValuesRef = React.useRef<IkpCenterFormData | null>(null);
+
+  React.useEffect(() => {
+    setPage(1);
+  }, [filters]);
+
+  const dialogOpen = createOpen || Boolean(editing);
 
   const listQuery = useQuery({
     queryKey: ["adminIkpCenters", page, limit, filters],
@@ -432,6 +459,42 @@ export default function IkpCentersPage() {
         limit: 50,
         includeInactive: true,
       }),
+  });
+
+  const districtsForDialogQuery = useQuery({
+    queryKey: ["adminIkpDistrictsForCentersDialog"],
+    queryFn: () =>
+      listAdminIkpDistricts({
+        page: 1,
+        limit: 2000,
+        includeInactive: true,
+      }),
+    enabled: dialogOpen && statesQuery.isSuccess,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const mandalsForDialogQuery = useQuery({
+    queryKey: ["adminIkpMandalsForCentersDialog"],
+    queryFn: () =>
+      listAdminIkpMandals({
+        page: 1,
+        limit: 5000,
+        includeInactive: true,
+      }),
+    enabled: dialogOpen && statesQuery.isSuccess,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const villagesForDialogQuery = useQuery({
+    queryKey: ["adminIkpVillagesForCentersDialog"],
+    queryFn: () =>
+      listAdminIkpVillages({
+        page: 1,
+        limit: 10000,
+        includeInactive: true,
+      }),
+    enabled: dialogOpen && statesQuery.isSuccess,
+    staleTime: 5 * 60 * 1000,
   });
 
   const districtsQuery = useQuery({
@@ -473,13 +536,41 @@ export default function IkpCentersPage() {
   const createMutation = useMutation({
     mutationFn: createAdminIkpCenter,
     onSuccess: () => {
-      showToast("IKP center created.", "success");
-      setCreateOpen(false);
+      showToast("Center created.", "success");
+      setCreateInitialValues((p) => {
+        const last = lastCreateValuesRef.current;
+        return {
+          ...p,
+          stateId: last?.stateId ?? p.stateId,
+          districtId: last?.districtId ?? p.districtId,
+          mandalId: last?.mandalId ?? p.mandalId,
+          villageId: last?.villageId ?? p.villageId,
+          name: "",
+          notes: "",
+          isActive: last?.isActive ?? p.isActive,
+        };
+      });
       queryClient.invalidateQueries({ queryKey: ["adminIkpCenters"] });
       queryClient.invalidateQueries({ queryKey: ["adminIkpStatesForCenters"] });
     },
     onError: (err) => {
-      showToast(err instanceof Error ? err.message : "Failed to create IKP center.", "error");
+      showToast(
+        err instanceof Error ? err.message : "Failed to create center.",
+        "error"
+      );
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteAdminIkpCenterPermanently(id),
+    onSuccess: () => {
+      showToast("Center deleted.", "success");
+      setDeleteTarget(null);
+      queryClient.invalidateQueries({ queryKey: ["adminIkpCenters"] });
+      queryClient.invalidateQueries({ queryKey: ["adminIkpStatesForCenters"] });
+    },
+    onError: (err) => {
+      showToast(err instanceof Error ? err.message : "Failed to delete center.", "error");
     },
   });
 
@@ -487,46 +578,111 @@ export default function IkpCentersPage() {
     mutationFn: (args: { id: string; payload: UpdateAdminIkpCenterRequest }) =>
       updateAdminIkpCenter(args.id, args.payload),
     onSuccess: () => {
-      showToast("IKP center updated.", "success");
+      showToast("Center updated.", "success");
       setEditing(null);
       queryClient.invalidateQueries({ queryKey: ["adminIkpCenters"] });
       queryClient.invalidateQueries({ queryKey: ["adminIkpStatesForCenters"] });
     },
     onError: (err) => {
-      showToast(err instanceof Error ? err.message : "Failed to update IKP center.", "error");
+      showToast(
+        err instanceof Error ? err.message : "Failed to update center.",
+        "error"
+      );
     },
   });
 
   const deactivateMutation = useMutation({
     mutationFn: (id: string) => deactivateAdminIkpCenter(id),
     onSuccess: () => {
-      showToast("IKP center deactivated.", "success");
+      showToast("Center deactivated.", "success");
       setDeactivateTarget(null);
       queryClient.invalidateQueries({ queryKey: ["adminIkpCenters"] });
       queryClient.invalidateQueries({ queryKey: ["adminIkpStatesForCenters"] });
     },
     onError: (err) => {
-      showToast(err instanceof Error ? err.message : "Failed to deactivate IKP center.", "error");
+      showToast(
+        err instanceof Error ? err.message : "Failed to deactivate center.",
+        "error"
+      );
     },
   });
 
   const items = listQuery.data?.data.items ?? [];
+  const total = listQuery.data?.data.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / limit));
   const states: AdminIkpState[] = statesQuery.data?.data.items ?? [];
-  const filterDistricts: AdminIkpDistrict[] = districtsQuery.data?.data.items ?? [];
+  const districtsForDialog: AdminIkpDistrict[] =
+    districtsForDialogQuery.data?.data.items ?? [];
+  const mandalsForDialog: AdminIkpMandal[] =
+    mandalsForDialogQuery.data?.data.items ?? [];
+  const villagesForDialog: AdminIkpVillage[] =
+    villagesForDialogQuery.data?.data.items ?? [];
+  const filterDistricts: AdminIkpDistrict[] =
+    districtsQuery.data?.data.items ?? [];
   const filterMandals: AdminIkpMandal[] = mandalsQuery.data?.data.items ?? [];
-  const filterVillages: AdminIkpVillage[] = villagesQuery.data?.data.items ?? [];
+  const filterVillages: AdminIkpVillage[] =
+    villagesQuery.data?.data.items ?? [];
+
+  const stateFilterGroups = React.useMemo<GroupedComboboxGroup[]>(() => {
+    return [
+      {
+        label: "States",
+        options: states.map((s) => ({
+          value: s.id,
+          label: `${s.code} - ${s.name}${s.isActive ? "" : " (inactive)"}`,
+        })),
+      },
+    ];
+  }, [states]);
+
+  const districtFilterGroups = React.useMemo<GroupedComboboxGroup[]>(() => {
+    return [
+      {
+        label: "Districts",
+        options: filterDistricts.map((d) => ({
+          value: d.id,
+          label: `${d.name}${d.isActive ? "" : " (inactive)"}`,
+        })),
+      },
+    ];
+  }, [filterDistricts]);
+
+  const mandalFilterGroups = React.useMemo<GroupedComboboxGroup[]>(() => {
+    return [
+      {
+        label: "Mandals",
+        options: filterMandals.map((m) => ({
+          value: m.id,
+          label: `${m.name}${m.isActive ? "" : " (inactive)"}`,
+        })),
+      },
+    ];
+  }, [filterMandals]);
+
+  const villageFilterGroups = React.useMemo<GroupedComboboxGroup[]>(() => {
+    return [
+      {
+        label: "Villages",
+        options: filterVillages.map((v) => ({
+          value: v.id,
+          label: `${v.name}${v.isActive ? "" : " (inactive)"}`,
+        })),
+      },
+    ];
+  }, [filterVillages]);
 
   return (
     <div className="space-y-4">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-4">
           <div className="space-y-1">
-            <CardTitle>IKP Centers</CardTitle>
+            <CardTitle>Centers</CardTitle>
             <div className="text-xs text-muted-foreground">
-              Manage master IKP centers. Millers can search and select these while recording procurements.
+              Manage master centers. Millers can search and select these while
+              recording procurements.
             </div>
           </div>
-          <Button onClick={() => setCreateOpen(true)}>New IKP center</Button>
+          <Button onClick={() => setCreateOpen(true)}>New center</Button>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="grid grid-cols-1 gap-3 md:grid-cols-6">
@@ -537,104 +693,83 @@ export default function IkpCentersPage() {
                 <InputGroupInput
                   id="ikpSearch"
                   placeholder="Search by name, village, mandal…"
-                  value={filters.search}
-                  onChange={(e) => setFilters((p) => ({ ...p, search: e.target.value }))}
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
                 />
               </InputGroup>
             </Field>
 
             <Field>
               <FieldLabel>State</FieldLabel>
-              <Select
+              <GroupedCombobox
                 value={filters.stateId}
                 onValueChange={(v) =>
                   setFilters((p) => ({
                     ...p,
-                    stateId: v ?? "",
+                    stateId: v ? (v === p.stateId ? "" : v) : "",
                     districtId: "",
                     mandalId: "",
                     villageId: "",
                   }))
                 }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="All states" />
-                </SelectTrigger>
-                <SelectContent>
-                  {states.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>
-                      {s.code} - {s.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                groups={stateFilterGroups}
+                placeholder="All states"
+                emptyText="No states found."
+              />
             </Field>
 
             <Field>
               <FieldLabel>District</FieldLabel>
-              <Select
+              <GroupedCombobox
                 value={filters.districtId}
                 onValueChange={(v) =>
                   setFilters((p) => ({
                     ...p,
-                    districtId: v ?? "",
+                    districtId: v ? (v === p.districtId ? "" : v) : "",
                     mandalId: "",
                     villageId: "",
                   }))
                 }
+                groups={districtFilterGroups}
+                placeholder={filters.stateId ? "All districts" : "Select state first"}
+                emptyText={filters.stateId ? "No districts found." : "Select a state first."}
                 disabled={!filters.stateId}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={filters.stateId ? "All districts" : "Select state first"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {filterDistricts.map((d) => (
-                    <SelectItem key={d.id} value={d.id}>
-                      {d.name}{d.isActive ? "" : " (inactive)"}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              />
             </Field>
 
             <Field>
               <FieldLabel>Mandal</FieldLabel>
-              <Select
+              <GroupedCombobox
                 value={filters.mandalId}
-                onValueChange={(v) => setFilters((p) => ({ ...p, mandalId: v ?? "", villageId: "" }))}
+                onValueChange={(v) =>
+                  setFilters((p) => ({
+                    ...p,
+                    mandalId: v ? (v === p.mandalId ? "" : v) : "",
+                    villageId: "",
+                  }))
+                }
+                groups={mandalFilterGroups}
+                placeholder={filters.districtId ? "All mandals" : "Select district first"}
+                emptyText={filters.districtId ? "No mandals found." : "Select a district first."}
                 disabled={!filters.districtId}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={filters.districtId ? "All mandals" : "Select district first"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {filterMandals.map((m) => (
-                    <SelectItem key={m.id} value={m.id}>
-                      {m.name}{m.isActive ? "" : " (inactive)"}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              />
             </Field>
 
             <Field>
               <FieldLabel>Village</FieldLabel>
-              <Select
+              <GroupedCombobox
                 value={filters.villageId}
-                onValueChange={(v) => setFilters((p) => ({ ...p, villageId: v ?? "" }))}
+                onValueChange={(v) =>
+                  setFilters((p) => ({
+                    ...p,
+                    villageId: v ? (v === p.villageId ? "" : v) : "",
+                  }))
+                }
+                groups={villageFilterGroups}
+                placeholder={filters.mandalId ? "All villages" : "Select mandal first"}
+                emptyText={filters.mandalId ? "No villages found." : "Select a mandal first."}
                 disabled={!filters.mandalId}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={filters.mandalId ? "All villages" : "Select mandal first"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {filterVillages.map((v) => (
-                    <SelectItem key={v.id} value={v.id}>
-                      {v.name}{v.isActive ? "" : " (inactive)"}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              />
             </Field>
           </div>
 
@@ -642,7 +777,9 @@ export default function IkpCentersPage() {
             <label className="flex items-center gap-2 text-sm">
               <Checkbox
                 checked={filters.includeInactive}
-                onCheckedChange={(v) => setFilters((p) => ({ ...p, includeInactive: Boolean(v) }))}
+                onCheckedChange={(v) =>
+                  setFilters((p) => ({ ...p, includeInactive: Boolean(v) }))
+                }
               />
               <span>Include inactive</span>
             </label>
@@ -652,10 +789,6 @@ export default function IkpCentersPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>State</TableHead>
-                  <TableHead>District</TableHead>
-                  <TableHead>Mandal</TableHead>
-                  <TableHead>Village</TableHead>
                   <TableHead>Center</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="w-[80px] text-right">Actions</TableHead>
@@ -664,24 +797,33 @@ export default function IkpCentersPage() {
               <TableBody>
                 {listQuery.isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-xs text-muted-foreground">
-                      Loading IKP centers…
+                    <TableCell
+                      colSpan={3}
+                      className="text-center text-xs text-muted-foreground"
+                    >
+                      Loading centers…
                     </TableCell>
                   </TableRow>
                 ) : items.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-xs text-muted-foreground">
-                      No IKP centers found.
+                    <TableCell
+                      colSpan={3}
+                      className="text-center text-xs text-muted-foreground"
+                    >
+                      No centers found.
                     </TableCell>
                   </TableRow>
                 ) : (
                   items.map((row) => (
                     <TableRow key={row.id}>
-                      <TableCell className="text-xs">{row.state}</TableCell>
-                      <TableCell className="text-xs">{row.district}</TableCell>
-                      <TableCell className="text-xs">{row.mandal}</TableCell>
-                      <TableCell className="text-xs">{row.village}</TableCell>
-                      <TableCell className="text-xs font-medium">{row.name}</TableCell>
+                      <TableCell className="text-xs">
+                        <div className="space-y-0.5">
+                          <div className="font-medium">{row.name}</div>
+                          <div className="text-[11px] text-muted-foreground">
+                            {row.state} / {row.district} / {row.mandal} / {row.village}
+                          </div>
+                        </div>
+                      </TableCell>
                       <TableCell className="text-xs">{row.isActive ? "Active" : "Inactive"}</TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
@@ -691,12 +833,17 @@ export default function IkpCentersPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => setEditing(row)}>Edit</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setEditing(row)}>
+                              Edit
+                            </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => setDeactivateTarget(row)}
                               disabled={!row.isActive}
                             >
                               Deactivate
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setDeleteTarget(row)}>
+                              Delete
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -708,11 +855,37 @@ export default function IkpCentersPage() {
             </Table>
           </div>
 
+          <div className="flex items-center justify-between gap-3">
+            <div className="text-xs text-muted-foreground">
+              Page {page} of {totalPages} · {total} total
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={listQuery.isLoading || page <= 1}
+              >
+                Previous
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={listQuery.isLoading || page >= totalPages}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+
           {listQuery.isError && (
             <div className="text-xs text-destructive">
               {listQuery.error instanceof Error
                 ? listQuery.error.message
-                : "Failed to load IKP centers."}
+                : "Failed to load centers."}
             </div>
           )}
         </CardContent>
@@ -721,34 +894,38 @@ export default function IkpCentersPage() {
       <IkpCenterDialog
         open={createOpen}
         onOpenChange={setCreateOpen}
-        title="New IKP center"
-        description="Add a new IKP center that millers can select."
-        initialValues={{
-          stateId: "",
-          districtId: "",
-          mandalId: "",
-          villageId: "",
-          name: "",
-          notes: "",
-          isActive: true,
-        }}
-        onSave={(data) =>
+        title="New center"
+        description="Add a new center that millers can select."
+        initialValues={createInitialValues}
+        onSave={(data) => {
+          lastCreateValuesRef.current = data;
           createMutation.mutate({
             villageId: data.villageId,
             name: data.name,
             notes: data.notes,
             isActive: data.isActive,
-          })
-        }
+          });
+        }}
         isSaving={createMutation.isPending}
         states={states}
+        districts={districtsForDialog}
+        mandals={mandalsForDialog}
+        villages={villagesForDialog}
+        isStatesLoading={statesQuery.isFetching}
+        isDistrictsLoading={districtsForDialogQuery.isFetching}
+        isMandalsLoading={mandalsForDialogQuery.isFetching}
+        isVillagesLoading={villagesForDialogQuery.isFetching}
       />
 
       <IkpCenterDialog
         open={Boolean(editing)}
-        onOpenChange={(open) => (!open ? setEditing(null) : null)}
-        title="Edit IKP center"
-        description="Update IKP center details."
+        onOpenChange={(open) => {
+          if (!open) {
+            setEditing(null);
+          }
+        }}
+        title="Edit center"
+        description="Update center details."
         initialValues={{
           stateId: editing?.stateId ?? "",
           districtId: editing?.districtId ?? "",
@@ -772,14 +949,25 @@ export default function IkpCentersPage() {
         }}
         isSaving={updateMutation.isPending}
         states={states}
+        districts={districtsForDialog}
+        mandals={mandalsForDialog}
+        villages={villagesForDialog}
+        isStatesLoading={statesQuery.isFetching}
+        isDistrictsLoading={districtsForDialogQuery.isFetching}
+        isMandalsLoading={mandalsForDialogQuery.isFetching}
+        isVillagesLoading={villagesForDialogQuery.isFetching}
       />
 
-      <AlertDialog open={Boolean(deactivateTarget)} onOpenChange={(open) => (!open ? setDeactivateTarget(null) : null)}>
+      <AlertDialog
+        open={Boolean(deactivateTarget)}
+        onOpenChange={(open) => (!open ? setDeactivateTarget(null) : null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Deactivate IKP center?</AlertDialogTitle>
+            <AlertDialogTitle>Deactivate center?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will hide the center from miller selection. Existing records will not be changed.
+              This will hide the center from miller selection. Existing records
+              will not be changed.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -792,6 +980,29 @@ export default function IkpCentersPage() {
               disabled={deactivateMutation.isPending}
             >
               {deactivateMutation.isPending ? "Deactivating…" : "Deactivate"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={Boolean(deleteTarget)} onOpenChange={(open) => (!open ? setDeleteTarget(null) : null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete center permanently?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the center. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (!deleteTarget) return;
+                deleteMutation.mutate(deleteTarget.id);
+              }}
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? "Deleting…" : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

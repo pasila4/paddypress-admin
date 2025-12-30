@@ -52,7 +52,7 @@ export type AdminIkpCenterLocationsResponse = z.infer<typeof AdminIkpCenterLocat
 
 export const CreateAdminIkpCenterRequestSchema = z.object({
   villageId: z.string().min(1, "Select a village."),
-  name: z.string().min(1, "Enter an IKP center name."),
+  name: z.string().min(1, "Enter a center name."),
   notes: z.string().optional(),
   isActive: z.boolean().optional(),
 });
