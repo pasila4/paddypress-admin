@@ -21,14 +21,14 @@ export function ToastManager() {
     if (!toast && !visible) return null;
 
     const variantStyles = {
-        success: "border-emerald-200 bg-emerald-50 text-emerald-900 dark:bg-emerald-950/20 dark:border-emerald-500/20 dark:text-emerald-400",
+        success: "border-green-200 bg-green-200 text-green-900 dark:bg-green-950/20 dark:border-green-500/20 dark:text-green-400",
         error: "border-red-200 bg-red-50 text-red-900 dark:bg-red-950/20 dark:border-red-500/20 dark:text-red-400",
         warning: "border-amber-200 bg-amber-50 text-amber-900 dark:bg-amber-950/20 dark:border-amber-500/20 dark:text-amber-400",
         info: "border-blue-200 bg-blue-50 text-blue-900 dark:bg-blue-950/20 dark:border-blue-500/20 dark:text-blue-400",
     };
 
     return (
-        <div className="fixed right-4 top-4 z-[9999] flex w-full max-w-[400px] flex-col gap-2">
+        <div className="fixed right-4 top-4 z-9999 flex w-full max-w-[400px] flex-col gap-2">
             <div
                 className={cn(
                     "flex items-center justify-between gap-3 rounded-lg border p-4 shadow-lg transition-all duration-300",
