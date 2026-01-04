@@ -1,6 +1,5 @@
 import { apiFetch } from "./api";
 import {
-  AdminIkpCenterLocationsResponseSchema,
   AdminIkpCenterResponseSchema,
   AdminIkpCentersListResponseSchema,
   CreateAdminIkpCenterRequestSchema,
@@ -96,45 +95,10 @@ export async function deactivateAdminIkpCenter(id: string) {
   return parsed.data;
 }
 
-export async function listIkpCenterStates(params: { includeInactive?: boolean } = {}) {
-  const qs = new URLSearchParams();
-  if (typeof params.includeInactive === "boolean") {
-    qs.set("includeInactive", String(params.includeInactive));
-  }
-
-  const res = await apiFetch(`/admin/ikp-centers/locations/states${qs.toString() ? `?${qs}` : ""}`);
-  const parsed = AdminIkpCenterLocationsResponseSchema.safeParse(res);
-  if (!parsed.success) throw new Error("Unexpected response from server.");
-  return parsed.data;
-}
-
-export async function listIkpCenterDistricts(params: { state: string; includeInactive?: boolean }) {
-  const qs = new URLSearchParams();
-  qs.set("state", params.state);
-  if (typeof params.includeInactive === "boolean") {
-    qs.set("includeInactive", String(params.includeInactive));
-  }
-
-  const res = await apiFetch(`/admin/ikp-centers/locations/districts?${qs.toString()}`);
-  const parsed = AdminIkpCenterLocationsResponseSchema.safeParse(res);
-  if (!parsed.success) throw new Error("Unexpected response from server.");
-  return parsed.data;
-}
-
-export async function listIkpCenterMandals(params: {
-  state: string;
-  district: string;
-  includeInactive?: boolean;
-}) {
-  const qs = new URLSearchParams();
-  qs.set("state", params.state);
-  qs.set("district", params.district);
-  if (typeof params.includeInactive === "boolean") {
-    qs.set("includeInactive", String(params.includeInactive));
-  }
-
-  const res = await apiFetch(`/admin/ikp-centers/locations/mandals?${qs.toString()}`);
-  const parsed = AdminIkpCenterLocationsResponseSchema.safeParse(res);
-  if (!parsed.success) throw new Error("Unexpected response from server.");
-  return parsed.data;
+export async function bulkUploadIkpCenters(villageId: string, items: string) {
+  const res = await apiFetch("/admin/ikp-centers/bulk", {
+    method: "POST",
+    body: JSON.stringify({ villageId, items }),
+  });
+  return res;
 }

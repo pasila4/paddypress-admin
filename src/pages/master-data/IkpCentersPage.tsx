@@ -57,7 +57,7 @@ import {
   GroupedCombobox,
   type GroupedComboboxGroup,
 } from "@/components/ui/grouped-combobox";
-
+import { BulkUploadIkpCentersDialog } from "@/components/BulkUploadIkpCentersDialog";
 
 import { useUiStore } from "@/store";
 import { useDebounce } from "@/lib/useDebounce";
@@ -67,23 +67,24 @@ import {
   deleteAdminIkpCenterPermanently,
   listAdminIkpCenters,
   updateAdminIkpCenter,
+  bulkUploadIkpCenters,
 } from "@/lib/adminIkpCenters";
 import type {
   AdminIkpCenter,
   UpdateAdminIkpCenterRequest,
 } from "@/types/adminIkpCenters";
 import {
-  listAdminIkpDistricts,
-  listAdminIkpMandals,
-  listAdminIkpStates,
-  listAdminIkpVillages,
-} from "@/lib/adminIkpLocations";
+  listAdminDistricts,
+  listAdminMandals,
+  listAdminStates,
+  listAdminVillages,
+} from "@/lib/adminLocations";
 import type {
-  AdminIkpDistrict,
-  AdminIkpMandal,
-  AdminIkpState,
-  AdminIkpVillage,
-} from "@/types/adminIkpLocations";
+  AdminDistrict,
+  AdminMandal,
+  AdminState,
+  AdminVillage,
+} from "@/types/adminLocations";
 
 const DEFAULT_PAGE_SIZE = 10;
 
@@ -107,10 +108,10 @@ function IkpCenterDialog(props: {
   initialValues: IkpCenterFormData;
   onSave: (data: IkpCenterFormData) => void;
   isSaving: boolean;
-  states: AdminIkpState[];
-  districts: AdminIkpDistrict[];
-  mandals: AdminIkpMandal[];
-  villages: AdminIkpVillage[];
+  states: AdminState[];
+  districts: AdminDistrict[];
+  mandals: AdminMandal[];
+  villages: AdminVillage[];
   isStatesLoading: boolean;
   isDistrictsLoading: boolean;
   isMandalsLoading: boolean;
@@ -422,6 +423,7 @@ export default function IkpCentersPage() {
   const [limit] = React.useState(DEFAULT_PAGE_SIZE);
 
   const [createOpen, setCreateOpen] = React.useState(false);
+  const [bulkOpen, setBulkOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<AdminIkpCenter | null>(null);
   const [deactivateTarget, setDeactivateTarget] =
     React.useState<AdminIkpCenter | null>(null);
@@ -464,7 +466,7 @@ export default function IkpCentersPage() {
   const statesQuery = useQuery({
     queryKey: ["adminIkpStatesForCenters"],
     queryFn: () =>
-      listAdminIkpStates({
+      listAdminStates({
         page: 1,
         limit: 50,
         includeInactive: true,
@@ -474,7 +476,7 @@ export default function IkpCentersPage() {
   const districtsForDialogQuery = useQuery({
     queryKey: ["adminIkpDistrictsForCentersDialog"],
     queryFn: () =>
-      listAdminIkpDistricts({
+      listAdminDistricts({
         page: 1,
         limit: 2000,
         includeInactive: true,
@@ -486,7 +488,7 @@ export default function IkpCentersPage() {
   const mandalsForDialogQuery = useQuery({
     queryKey: ["adminIkpMandalsForCentersDialog"],
     queryFn: () =>
-      listAdminIkpMandals({
+      listAdminMandals({
         page: 1,
         limit: 5000,
         includeInactive: true,
@@ -498,7 +500,7 @@ export default function IkpCentersPage() {
   const villagesForDialogQuery = useQuery({
     queryKey: ["adminIkpVillagesForCentersDialog"],
     queryFn: () =>
-      listAdminIkpVillages({
+      listAdminVillages({
         page: 1,
         limit: 10000,
         includeInactive: true,
@@ -511,7 +513,7 @@ export default function IkpCentersPage() {
     enabled: Boolean(filters.stateId && filters.stateId.trim()),
     queryKey: ["adminIkpDistrictsForCenters", filters.stateId],
     queryFn: () =>
-      listAdminIkpDistricts({
+      listAdminDistricts({
         page: 1,
         limit: 300,
         stateId: filters.stateId,
@@ -523,7 +525,7 @@ export default function IkpCentersPage() {
     enabled: Boolean(filters.districtId && filters.districtId.trim()),
     queryKey: ["adminIkpMandalsForCenters", filters.districtId],
     queryFn: () =>
-      listAdminIkpMandals({
+      listAdminMandals({
         page: 1,
         limit: 500,
         districtId: filters.districtId,
@@ -535,7 +537,7 @@ export default function IkpCentersPage() {
     enabled: Boolean(filters.mandalId && filters.mandalId.trim()),
     queryKey: ["adminIkpVillagesForCenters", filters.mandalId],
     queryFn: () =>
-      listAdminIkpVillages({
+      listAdminVillages({
         page: 1,
         limit: 800,
         mandalId: filters.mandalId,
@@ -617,20 +619,33 @@ export default function IkpCentersPage() {
     },
   });
 
+  const bulkUploadMutation = useMutation({
+    mutationFn: (args: { villageId: string; items: string }) =>
+      bulkUploadIkpCenters(args.villageId, args.items),
+    onSuccess: () => {
+      showToast("Centers uploaded successfully.", "success");
+      setBulkOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["adminIkpCenters"] });
+    },
+    onError: (err) => {
+      showToast(err instanceof Error ? err.message : "Failed to upload centers.", "error");
+    }
+  });
+
   const items = listQuery.data?.data.items ?? [];
   const total = listQuery.data?.data.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / limit));
-  const states: AdminIkpState[] = statesQuery.data?.data.items ?? [];
-  const districtsForDialog: AdminIkpDistrict[] =
+  const states: AdminState[] = statesQuery.data?.data.items ?? [];
+  const districtsForDialog: AdminDistrict[] =
     districtsForDialogQuery.data?.data.items ?? [];
-  const mandalsForDialog: AdminIkpMandal[] =
+  const mandalsForDialog: AdminMandal[] =
     mandalsForDialogQuery.data?.data.items ?? [];
-  const villagesForDialog: AdminIkpVillage[] =
+  const villagesForDialog: AdminVillage[] =
     villagesForDialogQuery.data?.data.items ?? [];
-  const filterDistricts: AdminIkpDistrict[] =
+  const filterDistricts: AdminDistrict[] =
     districtsQuery.data?.data.items ?? [];
-  const filterMandals: AdminIkpMandal[] = mandalsQuery.data?.data.items ?? [];
-  const filterVillages: AdminIkpVillage[] =
+  const filterMandals: AdminMandal[] = mandalsQuery.data?.data.items ?? [];
+  const filterVillages: AdminVillage[] =
     villagesQuery.data?.data.items ?? [];
 
   const stateFilterGroups = React.useMemo<GroupedComboboxGroup[]>(() => {
@@ -692,7 +707,10 @@ export default function IkpCentersPage() {
               recording procurements.
             </div>
           </div>
-          <Button onClick={() => setCreateOpen(true)}>New center</Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setBulkOpen(true)}>Bulk Upload</Button>
+            <Button onClick={() => setCreateOpen(true)}>New center</Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="grid grid-cols-1 gap-3 md:grid-cols-6">
@@ -839,7 +857,7 @@ export default function IkpCentersPage() {
                         <DropdownMenu>
                           <DropdownMenuTrigger
                             aria-label="Open actions"
-                            className={buttonVariants({ size: "icon-xs", variant: "ghost" })}
+                            className={buttonVariants({ size: "icon-sm", variant: "ghost" })}
                           >
                             <MoreHorizontalIcon className="size-3.5" />
                           </DropdownMenuTrigger>
@@ -906,26 +924,29 @@ export default function IkpCentersPage() {
         open={createOpen}
         onOpenChange={setCreateOpen}
         title="New center"
-        description="Add a new center that millers can select."
+        description="Add an IKP center. This will be available for millers."
         initialValues={createInitialValues}
-        onSave={(data) => {
-          lastCreateValuesRef.current = data;
-          createMutation.mutate({
-            villageId: data.villageId,
-            name: data.name,
-            notes: data.notes,
-            isActive: data.isActive,
-          });
-        }}
+        onSave={(data) => createMutation.mutate(data)}
         isSaving={createMutation.isPending}
         states={states}
         districts={districtsForDialog}
         mandals={mandalsForDialog}
         villages={villagesForDialog}
-        isStatesLoading={statesQuery.isFetching}
-        isDistrictsLoading={districtsForDialogQuery.isFetching}
-        isMandalsLoading={mandalsForDialogQuery.isFetching}
-        isVillagesLoading={villagesForDialogQuery.isFetching}
+        isStatesLoading={statesQuery.isLoading}
+        isDistrictsLoading={districtsForDialogQuery.isLoading}
+        isMandalsLoading={mandalsForDialogQuery.isLoading}
+        isVillagesLoading={villagesForDialogQuery.isLoading}
+      />
+
+      <BulkUploadIkpCentersDialog
+        open={bulkOpen}
+        onOpenChange={setBulkOpen}
+        onUpload={(villageId, items) => bulkUploadMutation.mutate({ villageId, items })}
+        isUploading={bulkUploadMutation.isPending}
+        states={states}
+        districts={districtsForDialog}
+        mandals={mandalsForDialog}
+        villages={villagesForDialog}
       />
 
       <IkpCenterDialog
@@ -963,10 +984,10 @@ export default function IkpCentersPage() {
         districts={districtsForDialog}
         mandals={mandalsForDialog}
         villages={villagesForDialog}
-        isStatesLoading={statesQuery.isFetching}
-        isDistrictsLoading={districtsForDialogQuery.isFetching}
-        isMandalsLoading={mandalsForDialogQuery.isFetching}
-        isVillagesLoading={villagesForDialogQuery.isFetching}
+        isStatesLoading={statesQuery.isLoading}
+        isDistrictsLoading={districtsForDialogQuery.isLoading}
+        isMandalsLoading={mandalsForDialogQuery.isLoading}
+        isVillagesLoading={villagesForDialogQuery.isLoading}
       />
 
       <AlertDialog

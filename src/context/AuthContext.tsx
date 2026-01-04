@@ -42,7 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => setOnUnauthorized(null);
   }, [clearSession, showToast]);
 
-  const isAuthenticated = Boolean(token) && user?.role === "ADMIN";
+  const isAuthenticated = Boolean(token);
 
   const value = React.useMemo<AuthContextValue>(
     () => ({
@@ -51,12 +51,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isAuthenticated,
       async login(email, password, remember) {
         const res = await loginMutation.mutateAsync({ email, password });
-
-        if (res.data.user.role !== "ADMIN") {
-          clearSession();
-          applyToken(null);
-          throw new Error("This account does not have admin access.");
-        }
 
         applyToken(res.data.token);
         setSession(
