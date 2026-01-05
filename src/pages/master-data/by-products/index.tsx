@@ -241,7 +241,7 @@ export default function ByProductsPage() {
 
         <div className="flex items-center justify-between">
           <div className="text-sm text-muted-foreground">
-            Page {page} of {totalPages} ({total} total)
+            Page {page} of {totalPages} {total} total
           </div>
           <div className="flex items-center gap-2">
             <Button
