@@ -67,3 +67,14 @@ export async function updateMasterRiceVariety(id: string, payload: UpsertMasterR
 
   return parsed.data;
 }
+
+export async function deleteMasterRiceVariety(id: string) {
+  const trimmed = id.trim();
+  if (!trimmed) {
+    throw new Error("Select a rice variety.");
+  }
+
+  return apiFetch(`/admin/rice-varieties/${encodeURIComponent(trimmed)}`, {
+    method: "DELETE",
+  });
+}

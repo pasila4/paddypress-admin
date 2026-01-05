@@ -28,13 +28,26 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontalIcon } from "lucide-react";
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 import { useUiStore } from "@/store";
 import {
   listMasterRiceTypes,
   upsertMasterRiceType,
+  deleteMasterRiceType,
 } from "@/lib/masterRiceTypes";
 import type { MasterRiceType } from "@/types/masterRiceTypes";
 
@@ -60,6 +73,7 @@ export default function RiceTypesPage() {
   const [includeInactive, setIncludeInactive] = React.useState(false);
   const [createOpen, setCreateOpen] = React.useState(false);
   const [editItem, setEditItem] = React.useState<MasterRiceType | null>(null);
+  const [deleteItem, setDeleteItem] = React.useState<MasterRiceType | null>(null);
 
   const riceTypesQuery = useQuery({
     queryKey: ["masterRiceTypes", search, includeInactive],
@@ -81,6 +95,22 @@ export default function RiceTypesPage() {
     },
     onError: (err: unknown) => {
       const message = err instanceof Error ? err.message : "Save failed.";
+      showToast(message, "error");
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (code: string) => {
+      return deleteMasterRiceType(code);
+    },
+    onSuccess: (res) => {
+      // @ts-expect-error message exists
+      showToast(res.message ?? "Rice type deleted.", "success");
+      void queryClient.invalidateQueries({ queryKey: ["masterRiceTypes"] });
+      setDeleteItem(null);
+    },
+    onError: (err: unknown) => {
+      const message = err instanceof Error ? err.message : "Delete failed.";
       showToast(message, "error");
     },
   });
@@ -163,6 +193,13 @@ export default function RiceTypesPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => setEditItem(t)}>Edit</DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onClick={() => setDeleteItem(t)}
+                        >
+                          Delete
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -186,6 +223,31 @@ export default function RiceTypesPage() {
         isSaving={upsertMutation.isPending}
         onSave={(data) => upsertMutation.mutate(data)}
       />
+
+      <AlertDialog open={!!deleteItem} onOpenChange={(open) => !open && setDeleteItem(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will delete the rice type <strong>{deleteItem?.name}</strong>. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className={buttonVariants({ variant: "destructive" })}
+              onClick={() => {
+                if (deleteItem) {
+                  deleteMutation.mutate(deleteItem.code);
+                }
+              }}
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

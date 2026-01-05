@@ -46,3 +46,14 @@ export async function upsertMasterRiceType(code: string, payload: UpsertMasterRi
 
   return parsed.data;
 }
+
+export async function deleteMasterRiceType(code: string) {
+  const normalizedCode = code.trim().toUpperCase();
+  if (!normalizedCode) {
+    throw new Error("Enter a rice type code.");
+  }
+
+  return apiFetch(`/admin/rice-types/${encodeURIComponent(normalizedCode)}`, {
+    method: "DELETE",
+  });
+}
