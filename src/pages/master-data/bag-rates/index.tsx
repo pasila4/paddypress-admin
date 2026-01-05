@@ -372,7 +372,7 @@ export default function BagRatesPage() {
         ) : (
           <Table>
             <TableHeader>
-              <TableRow className="bg-muted hover:bg-muted">
+              <TableRow className="bg-muted hover:bg-muted dark:bg-muted/10">
                 <TableHead className="w-[200px]">Rice Type</TableHead>
                 <TableHead>100 kg Rate</TableHead>
                 <TableHead>75 kg Rate</TableHead>
