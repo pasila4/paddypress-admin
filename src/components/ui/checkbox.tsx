@@ -1,13 +1,13 @@
-import * as React from "react";
-import { Check } from "lucide-react";
+import * as React from 'react';
+import { Check } from 'lucide-react';
 
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils';
 
-type CheckedState = boolean | "indeterminate";
+type CheckedState = boolean | 'indeterminate';
 
 type CheckboxProps = Omit<
   React.InputHTMLAttributes<HTMLInputElement>,
-  "type" | "checked" | "defaultChecked" | "onChange"
+  'type' | 'checked' | 'defaultChecked' | 'onChange'
 > & {
   checked?: CheckedState;
   defaultChecked?: CheckedState;
@@ -17,54 +17,59 @@ type CheckboxProps = Omit<
 const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
   (
     { className, checked, defaultChecked, disabled, onCheckedChange, ...props },
-    ref
+    ref,
   ) => {
     const inputRef = React.useRef<HTMLInputElement | null>(null);
 
     const setRefs = React.useCallback(
       (node: HTMLInputElement | null) => {
         inputRef.current = node;
-        if (typeof ref === "function") {
+        if (typeof ref === 'function') {
           ref(node);
         } else if (ref) {
-          (ref as React.MutableRefObject<HTMLInputElement | null>).current = node;
+          (ref as React.MutableRefObject<HTMLInputElement | null>).current =
+            node;
         }
       },
-      [ref]
+      [ref],
     );
 
     React.useEffect(() => {
       if (!inputRef.current) return;
-      inputRef.current.indeterminate = checked === "indeterminate";
+      inputRef.current.indeterminate = checked === 'indeterminate';
     }, [checked]);
 
     React.useEffect(() => {
       if (!inputRef.current) return;
-      inputRef.current.indeterminate = defaultChecked === "indeterminate";
+      inputRef.current.indeterminate = defaultChecked === 'indeterminate';
     }, [defaultChecked]);
 
-    const resolvedChecked = checked === "indeterminate" ? false : checked;
+    const resolvedChecked = checked === 'indeterminate' ? false : checked;
     const resolvedDefaultChecked =
-      defaultChecked === "indeterminate" ? false : defaultChecked;
+      defaultChecked === 'indeterminate' ? false : defaultChecked;
 
     const dataState: CheckedState =
-      checked === "indeterminate" ? "indeterminate" : resolvedChecked ? true : false;
+      checked === 'indeterminate'
+        ? 'indeterminate'
+        : resolvedChecked
+          ? true
+          : false;
 
     return (
       <label
         className={cn(
-          "peer relative inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] border border-input bg-background",
-          "focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 ring-offset-background",
-          "disabled:cursor-not-allowed disabled:opacity-50",
-          dataState !== false ? "bg-primary text-primary-foreground" : null,
-          className
+          'peer relative inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] border border-input bg-background',
+          'focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 ring-offset-background',
+          'disabled:cursor-not-allowed disabled:opacity-50',
+          dataState !== false ? 'bg-primary text-primary-foreground' : null,
+          className,
         )}
         data-state={
-          dataState === "indeterminate"
-            ? "indeterminate"
+          dataState === 'indeterminate'
+            ? 'indeterminate'
             : dataState
-            ? "checked"
-            : "unchecked"
+              ? 'checked'
+              : 'unchecked'
         }
         aria-disabled={disabled}
       >
@@ -79,8 +84,8 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
             onCheckedChange?.(event.target.checked);
           }}
           className={cn(
-            "absolute inset-0 m-0 h-full w-full cursor-pointer opacity-0",
-            disabled ? "cursor-not-allowed" : null
+            'absolute inset-0 m-0 h-full w-full cursor-pointer opacity-0',
+            disabled ? 'cursor-not-allowed' : null,
           )}
           {...props}
         />
@@ -89,8 +94,8 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
         ) : null}
       </label>
     );
-  }
+  },
 );
-Checkbox.displayName = "Checkbox";
+Checkbox.displayName = 'Checkbox';
 
 export { Checkbox };

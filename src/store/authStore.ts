@@ -1,7 +1,7 @@
-import { create } from "zustand";
+import { create } from 'zustand';
 
-import { AUTH_STORAGE_KEY } from "../config";
-import type { User } from "../types/auth";
+import { AUTH_STORAGE_KEY } from '../config';
+import type { User } from '../types/auth';
 
 interface AuthSession {
   token: string;
@@ -21,8 +21,8 @@ function readStoredAuth(): AuthSession | null {
       const raw = storage.getItem(AUTH_STORAGE_KEY);
       if (!raw) return null;
       const parsed = JSON.parse(raw) as { token?: unknown; user?: unknown };
-      if (typeof parsed?.token !== "string") return null;
-      if (!parsed?.user || typeof parsed.user !== "object") return null;
+      if (typeof parsed?.token !== 'string') return null;
+      if (!parsed?.user || typeof parsed.user !== 'object') return null;
       return { token: parsed.token, user: parsed.user as User };
     } catch {
       return null;
@@ -47,7 +47,7 @@ function writeStoredAuth(session: AuthSession | null, remember: boolean) {
 }
 
 const initial = (() => {
-  if (typeof window === "undefined") {
+  if (typeof window === 'undefined') {
     return { token: null as string | null, user: null as User | null };
   }
   const stored = readStoredAuth();

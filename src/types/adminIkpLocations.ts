@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 export const AdminIkpStateSchema = z.object({
   id: z.string(),
@@ -44,7 +44,9 @@ export const AdminIkpVillageSchema = z.object({
 
 export type AdminIkpVillage = z.infer<typeof AdminIkpVillageSchema>;
 
-export const PagedAdminResponseSchema = <T extends z.ZodTypeAny>(itemSchema: T) =>
+export const PagedAdminResponseSchema = <T extends z.ZodTypeAny>(
+  itemSchema: T,
+) =>
   z.object({
     success: z.boolean(),
     data: z.object({
@@ -56,17 +58,31 @@ export const PagedAdminResponseSchema = <T extends z.ZodTypeAny>(itemSchema: T) 
     message: z.string().optional(),
   });
 
-export const AdminIkpStatesListResponseSchema = PagedAdminResponseSchema(AdminIkpStateSchema);
-export type AdminIkpStatesListResponse = z.infer<typeof AdminIkpStatesListResponseSchema>;
+export const AdminIkpStatesListResponseSchema =
+  PagedAdminResponseSchema(AdminIkpStateSchema);
+export type AdminIkpStatesListResponse = z.infer<
+  typeof AdminIkpStatesListResponseSchema
+>;
 
-export const AdminIkpDistrictsListResponseSchema = PagedAdminResponseSchema(AdminIkpDistrictSchema);
-export type AdminIkpDistrictsListResponse = z.infer<typeof AdminIkpDistrictsListResponseSchema>;
+export const AdminIkpDistrictsListResponseSchema = PagedAdminResponseSchema(
+  AdminIkpDistrictSchema,
+);
+export type AdminIkpDistrictsListResponse = z.infer<
+  typeof AdminIkpDistrictsListResponseSchema
+>;
 
-export const AdminIkpMandalsListResponseSchema = PagedAdminResponseSchema(AdminIkpMandalSchema);
-export type AdminIkpMandalsListResponse = z.infer<typeof AdminIkpMandalsListResponseSchema>;
+export const AdminIkpMandalsListResponseSchema =
+  PagedAdminResponseSchema(AdminIkpMandalSchema);
+export type AdminIkpMandalsListResponse = z.infer<
+  typeof AdminIkpMandalsListResponseSchema
+>;
 
-export const AdminIkpVillagesListResponseSchema = PagedAdminResponseSchema(AdminIkpVillageSchema);
-export type AdminIkpVillagesListResponse = z.infer<typeof AdminIkpVillagesListResponseSchema>;
+export const AdminIkpVillagesListResponseSchema = PagedAdminResponseSchema(
+  AdminIkpVillageSchema,
+);
+export type AdminIkpVillagesListResponse = z.infer<
+  typeof AdminIkpVillagesListResponseSchema
+>;
 
 export const AdminIkpStateResponseSchema = z.object({
   success: z.boolean(),
@@ -82,7 +98,9 @@ export const AdminIkpDistrictResponseSchema = z.object({
   message: z.string().optional(),
 });
 
-export type AdminIkpDistrictResponse = z.infer<typeof AdminIkpDistrictResponseSchema>;
+export type AdminIkpDistrictResponse = z.infer<
+  typeof AdminIkpDistrictResponseSchema
+>;
 
 export const AdminIkpMandalResponseSchema = z.object({
   success: z.boolean(),
@@ -90,7 +108,9 @@ export const AdminIkpMandalResponseSchema = z.object({
   message: z.string().optional(),
 });
 
-export type AdminIkpMandalResponse = z.infer<typeof AdminIkpMandalResponseSchema>;
+export type AdminIkpMandalResponse = z.infer<
+  typeof AdminIkpMandalResponseSchema
+>;
 
 export const AdminIkpVillageResponseSchema = z.object({
   success: z.boolean(),
@@ -98,66 +118,85 @@ export const AdminIkpVillageResponseSchema = z.object({
   message: z.string().optional(),
 });
 
-export type AdminIkpVillageResponse = z.infer<typeof AdminIkpVillageResponseSchema>;
+export type AdminIkpVillageResponse = z.infer<
+  typeof AdminIkpVillageResponseSchema
+>;
 
 export const CreateAdminIkpStateRequestSchema = z.object({
-  code: z.string().min(1, "Enter a state code."),
-  name: z.string().min(1, "Enter a state name."),
+  code: z.string().min(1, 'Enter a state code.'),
+  name: z.string().min(1, 'Enter a state name.'),
   isActive: z.boolean().optional(),
 });
 
-export type CreateAdminIkpStateRequest = z.infer<typeof CreateAdminIkpStateRequestSchema>;
+export type CreateAdminIkpStateRequest = z.infer<
+  typeof CreateAdminIkpStateRequestSchema
+>;
 
-export const UpdateAdminIkpStateRequestSchema = CreateAdminIkpStateRequestSchema.partial();
-export type UpdateAdminIkpStateRequest = z.infer<typeof UpdateAdminIkpStateRequestSchema>;
+export const UpdateAdminIkpStateRequestSchema =
+  CreateAdminIkpStateRequestSchema.partial();
+export type UpdateAdminIkpStateRequest = z.infer<
+  typeof UpdateAdminIkpStateRequestSchema
+>;
 
 export const CreateAdminIkpDistrictRequestSchema = z.object({
-  stateId: z.string().min(1, "Select a state."),
-  name: z.string().min(1, "Enter a district name."),
+  stateId: z.string().min(1, 'Select a state.'),
+  name: z.string().min(1, 'Enter a district name.'),
   isActive: z.boolean().optional(),
 });
 
-export type CreateAdminIkpDistrictRequest = z.infer<typeof CreateAdminIkpDistrictRequestSchema>;
+export type CreateAdminIkpDistrictRequest = z.infer<
+  typeof CreateAdminIkpDistrictRequestSchema
+>;
 
 export const UpdateAdminIkpDistrictRequestSchema = z
   .object({
-    name: z.string().min(1, "Enter a district name.").optional(),
+    name: z.string().min(1, 'Enter a district name.').optional(),
     isActive: z.boolean().optional(),
   })
   .partial();
 
-export type UpdateAdminIkpDistrictRequest = z.infer<typeof UpdateAdminIkpDistrictRequestSchema>;
+export type UpdateAdminIkpDistrictRequest = z.infer<
+  typeof UpdateAdminIkpDistrictRequestSchema
+>;
 
 export const CreateAdminIkpMandalRequestSchema = z.object({
-  districtId: z.string().min(1, "Select a district."),
-  name: z.string().min(1, "Enter a mandal name."),
+  districtId: z.string().min(1, 'Select a district.'),
+  name: z.string().min(1, 'Enter a mandal name.'),
   isActive: z.boolean().optional(),
 });
 
-export type CreateAdminIkpMandalRequest = z.infer<typeof CreateAdminIkpMandalRequestSchema>;
+export type CreateAdminIkpMandalRequest = z.infer<
+  typeof CreateAdminIkpMandalRequestSchema
+>;
 
 export const UpdateAdminIkpMandalRequestSchema = z
   .object({
-    name: z.string().min(1, "Enter a mandal name.").optional(),
+    name: z.string().min(1, 'Enter a mandal name.').optional(),
     isActive: z.boolean().optional(),
   })
   .partial();
 
-export type UpdateAdminIkpMandalRequest = z.infer<typeof UpdateAdminIkpMandalRequestSchema>;
+export type UpdateAdminIkpMandalRequest = z.infer<
+  typeof UpdateAdminIkpMandalRequestSchema
+>;
 
 export const CreateAdminIkpVillageRequestSchema = z.object({
-  mandalId: z.string().min(1, "Select a mandal."),
-  name: z.string().min(1, "Enter a village name."),
+  mandalId: z.string().min(1, 'Select a mandal.'),
+  name: z.string().min(1, 'Enter a village name.'),
   isActive: z.boolean().optional(),
 });
 
-export type CreateAdminIkpVillageRequest = z.infer<typeof CreateAdminIkpVillageRequestSchema>;
+export type CreateAdminIkpVillageRequest = z.infer<
+  typeof CreateAdminIkpVillageRequestSchema
+>;
 
 export const UpdateAdminIkpVillageRequestSchema = z
   .object({
-    name: z.string().min(1, "Enter a village name.").optional(),
+    name: z.string().min(1, 'Enter a village name.').optional(),
     isActive: z.boolean().optional(),
   })
   .partial();
 
-export type UpdateAdminIkpVillageRequest = z.infer<typeof UpdateAdminIkpVillageRequestSchema>;
+export type UpdateAdminIkpVillageRequest = z.infer<
+  typeof UpdateAdminIkpVillageRequestSchema
+>;

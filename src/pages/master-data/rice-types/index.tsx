@@ -1,9 +1,8 @@
-import * as React from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import * as React from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button, buttonVariants } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -11,26 +10,23 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import {
-  Field,
-  FieldLabel,
-} from "@/components/ui/field";
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Field, FieldLabel } from '@/components/ui/field';
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
-} from "@/components/ui/input-group";
-import { Checkbox } from "@/components/ui/checkbox";
+} from '@/components/ui/input-group';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
-import { MoreHorizontalIcon } from "lucide-react";
+} from '@/components/ui/dropdown-menu';
+import { MoreHorizontalIcon } from 'lucide-react';
 
 import {
   AlertDialog,
@@ -41,26 +37,26 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+} from '@/components/ui/alert-dialog';
 
-import { useUiStore } from "@/store";
+import { useUiStore } from '@/store';
 import {
   listMasterRiceTypes,
   upsertMasterRiceType,
   deleteMasterRiceType,
-} from "@/lib/masterRiceTypes";
-import type { MasterRiceType } from "@/types/masterRiceTypes";
+} from '@/lib/masterRiceTypes';
+import type { MasterRiceType } from '@/types/masterRiceTypes';
 
 import {
   CreateRiceTypeDialog,
   EditRiceTypeDialog,
   type RiceTypeFormData,
-} from "./RiceTypeDialog";
+} from './RiceTypeDialog';
 
 function ActiveBadge({ isActive }: { isActive: boolean }) {
   return (
-    <Badge variant={isActive ? "default" : "outline"}>
-      {isActive ? "Active" : "Inactive"}
+    <Badge variant={isActive ? 'default' : 'outline'}>
+      {isActive ? 'Active' : 'Inactive'}
     </Badge>
   );
 }
@@ -69,14 +65,16 @@ export default function RiceTypesPage() {
   const { showToast } = useUiStore();
   const queryClient = useQueryClient();
 
-  const [search, setSearch] = React.useState("");
+  const [search, setSearch] = React.useState('');
   const [includeInactive, setIncludeInactive] = React.useState(false);
   const [createOpen, setCreateOpen] = React.useState(false);
   const [editItem, setEditItem] = React.useState<MasterRiceType | null>(null);
-  const [deleteItem, setDeleteItem] = React.useState<MasterRiceType | null>(null);
+  const [deleteItem, setDeleteItem] = React.useState<MasterRiceType | null>(
+    null,
+  );
 
   const riceTypesQuery = useQuery({
-    queryKey: ["masterRiceTypes", search, includeInactive],
+    queryKey: ['masterRiceTypes', search, includeInactive],
     queryFn: () => listMasterRiceTypes({ search, includeInactive }),
   });
 
@@ -88,14 +86,14 @@ export default function RiceTypesPage() {
       });
     },
     onSuccess: (res) => {
-      showToast(res.message ?? "Rice type saved.", "success");
-      void queryClient.invalidateQueries({ queryKey: ["masterRiceTypes"] });
+      showToast(res.message ?? 'Rice type saved.', 'success');
+      void queryClient.invalidateQueries({ queryKey: ['masterRiceTypes'] });
       setCreateOpen(false);
       setEditItem(null);
     },
     onError: (err: unknown) => {
-      const message = err instanceof Error ? err.message : "Save failed.";
-      showToast(message, "error");
+      const message = err instanceof Error ? err.message : 'Save failed.';
+      showToast(message, 'error');
     },
   });
 
@@ -105,13 +103,13 @@ export default function RiceTypesPage() {
     },
     onSuccess: (res) => {
       // @ts-expect-error message exists
-      showToast(res.message ?? "Rice type deleted.", "success");
-      void queryClient.invalidateQueries({ queryKey: ["masterRiceTypes"] });
+      showToast(res.message ?? 'Rice type deleted.', 'success');
+      void queryClient.invalidateQueries({ queryKey: ['masterRiceTypes'] });
       setDeleteItem(null);
     },
     onError: (err: unknown) => {
-      const message = err instanceof Error ? err.message : "Delete failed.";
-      showToast(message, "error");
+      const message = err instanceof Error ? err.message : 'Delete failed.';
+      showToast(message, 'error');
     },
   });
 
@@ -162,9 +160,13 @@ export default function RiceTypesPage() {
         {riceTypesQuery.isLoading ? (
           <div className="text-sm text-muted-foreground">Loading…</div>
         ) : riceTypesQuery.isError ? (
-          <div className="text-sm text-destructive">Failed to load rice types.</div>
+          <div className="text-sm text-destructive">
+            Failed to load rice types.
+          </div>
         ) : items.length === 0 ? (
-          <div className="text-sm text-muted-foreground">No rice types found.</div>
+          <div className="text-sm text-muted-foreground">
+            No rice types found.
+          </div>
         ) : (
           <Table>
             <TableHeader>
@@ -187,12 +189,17 @@ export default function RiceTypesPage() {
                     <DropdownMenu>
                       <DropdownMenuTrigger
                         aria-label="Open actions"
-                        className={buttonVariants({ size: "icon-sm", variant: "ghost" })}
+                        className={buttonVariants({
+                          size: 'icon-sm',
+                          variant: 'ghost',
+                        })}
                       >
                         <MoreHorizontalIcon />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => setEditItem(t)}>Edit</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setEditItem(t)}>
+                          Edit
+                        </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           className="text-destructive focus:text-destructive"
@@ -224,18 +231,22 @@ export default function RiceTypesPage() {
         onSave={(data) => upsertMutation.mutate(data)}
       />
 
-      <AlertDialog open={!!deleteItem} onOpenChange={(open) => !open && setDeleteItem(null)}>
+      <AlertDialog
+        open={!!deleteItem}
+        onOpenChange={(open) => !open && setDeleteItem(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will delete the rice type <strong>{deleteItem?.name}</strong>. This action cannot be undone.
+              This will delete the rice type <strong>{deleteItem?.name}</strong>
+              . This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              className={buttonVariants({ variant: "destructive" })}
+              className={buttonVariants({ variant: 'destructive' })}
               onClick={() => {
                 if (deleteItem) {
                   deleteMutation.mutate(deleteItem.code);
@@ -243,7 +254,7 @@ export default function RiceTypesPage() {
               }}
               disabled={deleteMutation.isPending}
             >
-              {deleteMutation.isPending ? "Deleting..." : "Delete"}
+              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

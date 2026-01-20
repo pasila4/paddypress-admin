@@ -1,20 +1,18 @@
-import { apiFetch } from "./api";
-import { ApiError } from "./api";
-import { z } from "zod";
-import {
-  ListSeasonBagRatesResponseSchema,
-} from "../types/seasonBagRates";
+import { apiFetch } from './api';
+import { ApiError } from './api';
+import { z } from 'zod';
+import { ListSeasonBagRatesResponseSchema } from '../types/seasonBagRates';
 import type {
   SeasonCode,
   UpsertSeasonBagRatesRequest,
-} from "../types/seasonBagRates";
+} from '../types/seasonBagRates';
 
-const LegacyBagSizeSchema = z.enum(["KG_40", "KG_75", "KG_100"]);
+const LegacyBagSizeSchema = z.enum(['KG_40', 'KG_75', 'KG_100']);
 
 const LegacySeasonBagRateSchema = z.object({
   id: z.string(),
   cropYearStartYear: z.number().int(),
-  seasonCode: z.enum(["KHARIF", "RABI"]),
+  seasonCode: z.enum(['KHARIF', 'RABI']),
   riceType: z.object({
     code: z.string(),
     name: z.string(),
@@ -37,7 +35,7 @@ function normalizeSeasonBagRatesResponse(res: unknown) {
 
   const legacy = LegacyListSeasonBagRatesResponseSchema.safeParse(res);
   if (!legacy.success) {
-    throw new Error("Unexpected response from server.");
+    throw new Error('Unexpected response from server.');
   }
 
   const byRiceTypeCode = new Map<
@@ -46,7 +44,11 @@ function normalizeSeasonBagRatesResponse(res: unknown) {
       cropYearStartYear: number;
       seasonCode: SeasonCode;
       riceType: { code: string; name: string };
-      rates: { KG_40: number | null; KG_75: number | null; KG_100: number | null };
+      rates: {
+        KG_40: number | null;
+        KG_75: number | null;
+        KG_100: number | null;
+      };
     }
   >();
 
@@ -72,11 +74,27 @@ function normalizeSeasonBagRatesResponse(res: unknown) {
 }
 
 function toLegacyUpsertPayload(payload: UpsertSeasonBagRatesRequest) {
-  const items: Array<{ riceTypeCode: string; bagSize: string; rateRupees: number }> = [];
+  const items: Array<{
+    riceTypeCode: string;
+    bagSize: string;
+    rateRupees: number;
+  }> = [];
   for (const row of payload.rates) {
-    items.push({ riceTypeCode: row.riceTypeCode, bagSize: "KG_40", rateRupees: row.rates.KG_40 });
-    items.push({ riceTypeCode: row.riceTypeCode, bagSize: "KG_75", rateRupees: row.rates.KG_75 });
-    items.push({ riceTypeCode: row.riceTypeCode, bagSize: "KG_100", rateRupees: row.rates.KG_100 });
+    items.push({
+      riceTypeCode: row.riceTypeCode,
+      bagSize: 'KG_40',
+      rateRupees: row.rates.KG_40,
+    });
+    items.push({
+      riceTypeCode: row.riceTypeCode,
+      bagSize: 'KG_75',
+      rateRupees: row.rates.KG_75,
+    });
+    items.push({
+      riceTypeCode: row.riceTypeCode,
+      bagSize: 'KG_100',
+      rateRupees: row.rates.KG_100,
+    });
   }
 
   return {
@@ -91,8 +109,8 @@ export async function listSeasonBagRates(params: {
   seasonCode: SeasonCode;
 }) {
   const searchParams = new URLSearchParams();
-  searchParams.set("cropYearStartYear", String(params.cropYearStartYear));
-  searchParams.set("seasonCode", params.seasonCode);
+  searchParams.set('cropYearStartYear', String(params.cropYearStartYear));
+  searchParams.set('seasonCode', params.seasonCode);
 
   const qs = searchParams.toString();
   const res = await apiFetch(`/admin/season-bag-rates?${qs}`);
@@ -100,10 +118,12 @@ export async function listSeasonBagRates(params: {
   return normalizeSeasonBagRatesResponse(res);
 }
 
-export async function upsertSeasonBagRates(payload: UpsertSeasonBagRatesRequest) {
+export async function upsertSeasonBagRates(
+  payload: UpsertSeasonBagRatesRequest,
+) {
   try {
-    const res = await apiFetch("/admin/season-bag-rates", {
-      method: "POST",
+    const res = await apiFetch('/admin/season-bag-rates', {
+      method: 'POST',
       body: JSON.stringify(payload),
     });
 
@@ -111,8 +131,8 @@ export async function upsertSeasonBagRates(payload: UpsertSeasonBagRatesRequest)
   } catch (err) {
     if (err instanceof ApiError && err.status === 400) {
       const legacyPayload = toLegacyUpsertPayload(payload);
-      const res = await apiFetch("/admin/season-bag-rates", {
-        method: "POST",
+      const res = await apiFetch('/admin/season-bag-rates', {
+        method: 'POST',
         body: JSON.stringify(legacyPayload),
       });
       return normalizeSeasonBagRatesResponse(res);
@@ -126,8 +146,8 @@ export async function resetSeasonBagRates(params: {
   seasonCode: SeasonCode;
   confirm: string;
 }) {
-  const res = await apiFetch("/admin/season-bag-rates/reset", {
-    method: "POST",
+  const res = await apiFetch('/admin/season-bag-rates/reset', {
+    method: 'POST',
     body: JSON.stringify({
       cropYearStartYear: params.cropYearStartYear,
       seasonCode: params.seasonCode,

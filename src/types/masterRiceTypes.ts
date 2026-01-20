@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 export const MasterRiceTypeSchema = z.object({
   id: z.string(),
@@ -27,10 +27,12 @@ export const MasterRiceTypeResponseSchema = z.object({
   message: z.string().optional(),
 });
 
-export type MasterRiceTypeResponse = z.infer<typeof MasterRiceTypeResponseSchema>;
+export type MasterRiceTypeResponse = z.infer<
+  typeof MasterRiceTypeResponseSchema
+>;
 
 export const UpsertMasterRiceTypeRequestSchema = z.object({
-  name: z.string().min(1, "Enter a name."),
+  name: z.string().min(1, 'Enter a name.'),
   isActive: z.boolean().optional(),
 });
 

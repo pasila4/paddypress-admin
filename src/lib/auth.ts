@@ -1,16 +1,16 @@
-import { apiFetch, setAuthToken } from "./api";
-import type { LoginRequest } from "../types/auth";
-import { LoginResponseSchema } from "../types/auth";
+import { apiFetch, setAuthToken } from './api';
+import type { LoginRequest } from '../types/auth';
+import { LoginResponseSchema } from '../types/auth';
 
 export async function loginApi(payload: LoginRequest) {
-  const res = await apiFetch("/auth/login", {
-    method: "POST",
+  const res = await apiFetch('/auth/login', {
+    method: 'POST',
     body: JSON.stringify(payload),
   });
 
   const parsed = LoginResponseSchema.safeParse(res);
   if (!parsed.success) {
-    throw new Error("Unexpected response from server.");
+    throw new Error('Unexpected response from server.');
   }
 
   return parsed.data;

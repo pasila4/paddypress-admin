@@ -1,5 +1,5 @@
-import * as React from "react";
-import { NavLink, Outlet, useLocation } from "react-router-dom";
+import * as React from 'react';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import {
   BarChart3,
   Building2,
@@ -12,10 +12,10 @@ import {
   Wheat,
   Warehouse,
   Package,
-} from "lucide-react";
+} from 'lucide-react';
 
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,11 +25,11 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { useAuth } from "@/context/AuthContext";
-import { NavUser } from "@/components/layout/NavUser";
-import { SidebarFooter, SidebarProvider } from "@/components/ui/sidebar";
-import { ToastManager } from "../ui/ToastManager";
+} from '@/components/ui/alert-dialog';
+import { useAuth } from '@/context/AuthContext';
+import { NavUser } from '@/components/layout/NavUser';
+import { SidebarFooter, SidebarProvider } from '@/components/ui/sidebar';
+import { ToastManager } from '../ui/ToastManager';
 
 type MenuItem = {
   to: string;
@@ -43,59 +43,91 @@ type MenuSection = {
 };
 
 const dashboardItem: MenuItem = {
-  to: "/dashboard",
-  label: "Dashboard",
+  to: '/dashboard',
+  label: 'Dashboard',
   icon: <BarChart3 className="size-4" />,
 };
 
 const sections: MenuSection[] = [
   {
-    title: "Organizations",
+    title: 'Organizations',
     items: [
-      { to: "/organizations", label: "Organizations", icon: <Building2 className="size-4" /> },
+      {
+        to: '/organizations',
+        label: 'Organizations',
+        icon: <Building2 className="size-4" />,
+      },
     ],
   },
   {
-    title: "Rice",
+    title: 'Rice',
     items: [
-      { to: "/master-data/rice-types", label: "Rice Types", icon: <Wheat className="size-4" /> },
-      { to: "/master-data/varieties", label: "Varieties", icon: <Sprout className="size-4" /> },
+      {
+        to: '/master-data/rice-types',
+        label: 'Rice Types',
+        icon: <Wheat className="size-4" />,
+      },
+      {
+        to: '/master-data/varieties',
+        label: 'Varieties',
+        icon: <Sprout className="size-4" />,
+      },
     ],
   },
   {
-    title: "Crop",
+    title: 'Crop',
     items: [
-      { to: "/master-data/crop-years", label: "Crop Years", icon: <NotebookTabs className="size-4" /> },
-      { to: "/master-data/bag-rates", label: "Bag Rates", icon: <Tag className="size-4" /> },
+      {
+        to: '/master-data/crop-years',
+        label: 'Crop Years',
+        icon: <NotebookTabs className="size-4" />,
+      },
+      {
+        to: '/master-data/bag-rates',
+        label: 'Bag Rates',
+        icon: <Tag className="size-4" />,
+      },
     ],
   },
   {
-    title: "By Products",
+    title: 'By Products',
     items: [
-      { to: "/master-data/by-products", label: "By Products", icon: <Package className="size-4" /> },
+      {
+        to: '/master-data/by-products',
+        label: 'By Products',
+        icon: <Package className="size-4" />,
+      },
     ],
   },
   {
-    title: "Locations",
+    title: 'Locations',
     items: [
-      { to: "/master-data/locations", label: "Locations", icon: <MapPinned className="size-4" /> },
-      { to: "/master-data/ikp-centers", label: "Centers", icon: <Warehouse className="size-4" /> },
+      {
+        to: '/master-data/locations',
+        label: 'Locations',
+        icon: <MapPinned className="size-4" />,
+      },
+      {
+        to: '/master-data/ikp-centers',
+        label: 'Centers',
+        icon: <Warehouse className="size-4" />,
+      },
     ],
   },
 ];
 
 function getInitialIsDark(): boolean {
-  const stored = localStorage.getItem("admin-theme");
-  if (stored === "dark") return true;
-  if (stored === "light") return false;
-  return window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? false;
+  const stored = localStorage.getItem('admin-theme');
+  if (stored === 'dark') return true;
+  if (stored === 'light') return false;
+  return window.matchMedia?.('(prefers-color-scheme: dark)')?.matches ?? false;
 }
 
 function applyTheme(isDark: boolean) {
   const root = document.documentElement;
-  if (isDark) root.classList.add("dark");
-  else root.classList.remove("dark");
-  localStorage.setItem("admin-theme", isDark ? "dark" : "light");
+  if (isDark) root.classList.add('dark');
+  else root.classList.remove('dark');
+  localStorage.setItem('admin-theme', isDark ? 'dark' : 'light');
 }
 
 function MenuLink({ item }: { item: MenuItem }) {
@@ -104,8 +136,8 @@ function MenuLink({ item }: { item: MenuItem }) {
       to={item.to}
       className={({ isActive }) =>
         cn(
-          "flex items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-          isActive ? "bg-accent text-accent-foreground" : null
+          'flex items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+          isActive ? 'bg-accent text-accent-foreground' : null,
         )
       }
       end
@@ -131,14 +163,18 @@ export default function AdminLayout() {
     if (dashboardItem.to === location.pathname) return dashboardItem.label;
     const active = sections
       .flatMap((s) => s.items)
-      .find((m) => location.pathname === m.to || location.pathname.startsWith(`${m.to}/`));
-    return active?.label ?? "Admin";
+      .find(
+        (m) =>
+          location.pathname === m.to ||
+          location.pathname.startsWith(`${m.to}/`),
+      );
+    return active?.label ?? 'Admin';
   }, [location.pathname]);
 
   const displayName =
     user?.firstName || user?.lastName
-      ? `${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim()
-      : user?.email ?? "Admin";
+      ? `${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim()
+      : (user?.email ?? 'Admin');
 
   return (
     <SidebarProvider>
@@ -173,8 +209,8 @@ export default function AdminLayout() {
                 <NavUser
                   user={{
                     name: displayName,
-                    email: user?.email ?? "",
-                    avatar: "",
+                    email: user?.email ?? '',
+                    avatar: '',
                   }}
                   onLogout={() => setConfirmLogoutOpen(true)}
                 />
@@ -190,9 +226,15 @@ export default function AdminLayout() {
                   variant="outline"
                   size="icon"
                   onClick={() => setIsDark((v) => !v)}
-                  aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
+                  aria-label={
+                    isDark ? 'Switch to light theme' : 'Switch to dark theme'
+                  }
                 >
-                  {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
+                  {isDark ? (
+                    <Sun className="size-4" />
+                  ) : (
+                    <Moon className="size-4" />
+                  )}
                 </Button>
               </div>
             </header>
@@ -203,11 +245,16 @@ export default function AdminLayout() {
           </div>
         </div>
 
-        <AlertDialog open={confirmLogoutOpen} onOpenChange={setConfirmLogoutOpen}>
+        <AlertDialog
+          open={confirmLogoutOpen}
+          onOpenChange={setConfirmLogoutOpen}
+        >
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Sign out</AlertDialogTitle>
-              <AlertDialogDescription>Are you sure you want to sign out?</AlertDialogDescription>
+              <AlertDialogDescription>
+                Are you sure you want to sign out?
+              </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>

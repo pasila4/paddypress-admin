@@ -1,6 +1,6 @@
-import { z } from "zod";
+import { z } from 'zod';
 
-export const AdminRoleSchema = z.enum(["ADMIN", "MILLER", "MANAGER", "DRIVER"]);
+export const AdminRoleSchema = z.enum(['ADMIN', 'MILLER', 'MANAGER', 'DRIVER']);
 export type AdminRole = z.infer<typeof AdminRoleSchema>;
 
 export const AdminOrgUserSchema = z.object({
@@ -54,22 +54,28 @@ export const AdminOrganizationResponseSchema = z.object({
   message: z.string().optional(),
 });
 
-export type AdminOrganizationResponse = z.infer<typeof AdminOrganizationResponseSchema>;
+export type AdminOrganizationResponse = z.infer<
+  typeof AdminOrganizationResponseSchema
+>;
 
 export const CreateOrganizationRequestSchema = z.object({
-  name: z.string().min(2, "Enter an organization name."),
-  state: z.string().min(1, "Enter a state."),
-  district: z.string().min(1, "Enter a district."),
-  village: z.string().min(1, "Enter a village."),
+  name: z.string().min(2, 'Enter an organization name.'),
+  state: z.string().min(1, 'Enter a state.'),
+  district: z.string().min(1, 'Enter a district.'),
+  village: z.string().min(1, 'Enter a village.'),
 });
 
-export type CreateOrganizationRequest = z.infer<typeof CreateOrganizationRequestSchema>;
+export type CreateOrganizationRequest = z.infer<
+  typeof CreateOrganizationRequestSchema
+>;
 
 export const UpdateOrganizationRequestSchema = z.object({
-  name: z.string().min(2, "Enter an organization name.").optional(),
-  state: z.string().min(1, "Enter a state.").optional(),
-  district: z.string().min(1, "Enter a district.").optional(),
-  village: z.string().min(1, "Enter a village.").optional(),
+  name: z.string().min(2, 'Enter an organization name.').optional(),
+  state: z.string().min(1, 'Enter a state.').optional(),
+  district: z.string().min(1, 'Enter a district.').optional(),
+  village: z.string().min(1, 'Enter a village.').optional(),
 });
 
-export type UpdateOrganizationRequest = z.infer<typeof UpdateOrganizationRequestSchema>;
+export type UpdateOrganizationRequest = z.infer<
+  typeof UpdateOrganizationRequestSchema
+>;

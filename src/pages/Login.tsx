@@ -1,33 +1,33 @@
-import * as React from "react";
-import { Navigate, useNavigate } from "react-router-dom";
-import { Controller, useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, Lock, Mail } from "lucide-react";
+import * as React from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
+import { Controller, useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
 
-import { AuthCardLayout } from "@/components/layout/AuthCardLayout";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { AuthCardLayout } from '@/components/layout/AuthCardLayout';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Field,
   FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
-} from "@/components/ui/field";
+} from '@/components/ui/field';
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupButton,
   InputGroupInput,
-} from "@/components/ui/input-group";
-import { useAuth } from "@/context/AuthContext";
-import { useUiStore } from "@/store";
-import { LOGIN_REMEMBER_KEY } from "@/config";
+} from '@/components/ui/input-group';
+import { useAuth } from '@/context/AuthContext';
+import { useUiStore } from '@/store';
+import { LOGIN_REMEMBER_KEY } from '@/config';
 
 const schema = z.object({
-  email: z.string().min(1, "Enter your email.").email("Enter a valid email."),
-  password: z.string().min(1, "Enter your password."),
+  email: z.string().min(1, 'Enter your email.').email('Enter a valid email.'),
+  password: z.string().min(1, 'Enter your password.'),
   remember: z.boolean().optional(),
 });
 
@@ -51,16 +51,16 @@ export default function Login() {
   });
 
   React.useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === 'undefined') return;
     try {
       const raw = localStorage.getItem(LOGIN_REMEMBER_KEY);
       if (!raw) return;
       const stored: unknown = JSON.parse(raw);
-      if (!stored || typeof stored !== "object") return;
+      if (!stored || typeof stored !== 'object') return;
       const obj = stored as Record<string, unknown>;
-      if (typeof obj.email === "string") setValue("email", obj.email);
-      if (typeof obj.password === "string") setValue("password", obj.password);
-      if (typeof obj.remember === "boolean") setValue("remember", obj.remember);
+      if (typeof obj.email === 'string') setValue('email', obj.email);
+      if (typeof obj.password === 'string') setValue('password', obj.password);
+      if (typeof obj.remember === 'boolean') setValue('remember', obj.remember);
     } catch {
       // ignore malformed values
     }
@@ -72,23 +72,27 @@ export default function Login() {
     try {
       await login(data.email, data.password, Boolean(data.remember));
     } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : "Sign-in failed.";
-      showToast(message || "Sign-in failed.", "error");
+      const message = e instanceof Error ? e.message : 'Sign-in failed.';
+      showToast(message || 'Sign-in failed.', 'error');
       return;
     }
 
-    if (typeof window === "undefined") return;
+    if (typeof window === 'undefined') return;
 
     if (data.remember) {
       localStorage.setItem(
         LOGIN_REMEMBER_KEY,
-        JSON.stringify({ email: data.email, password: data.password, remember: true })
+        JSON.stringify({
+          email: data.email,
+          password: data.password,
+          remember: true,
+        }),
       );
     } else {
       localStorage.removeItem(LOGIN_REMEMBER_KEY);
     }
 
-    navigate("/dashboard", { replace: true });
+    navigate('/dashboard', { replace: true });
   }
 
   return (
@@ -97,7 +101,7 @@ export default function Login() {
       subtitle="Sign in to manage master data."
       belowCard={
         <FieldDescription>
-          Default login: <span className="font-medium">admin@admin.com</span> /{" "}
+          Default login: <span className="font-medium">admin@admin.com</span> /{' '}
           <span className="font-medium">admin123</span>
         </FieldDescription>
       }
@@ -116,7 +120,7 @@ export default function Login() {
                   type="email"
                   autoComplete="email"
                   placeholder="admin@admin.com"
-                  {...register("email")}
+                  {...register('email')}
                 />
               </InputGroup>
             </div>
@@ -132,14 +136,16 @@ export default function Login() {
                 </InputGroupAddon>
                 <InputGroupInput
                   id="password"
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   autoComplete="current-password"
                   placeholder="Enter password"
-                  {...register("password")}
+                  {...register('password')}
                 />
                 <InputGroupAddon align="inline-end" className="pr-1">
                   <InputGroupButton
-                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-label={
+                      showPassword ? 'Hide password' : 'Show password'
+                    }
                     onClick={() => setShowPassword((prev) => !prev)}
                   >
                     {showPassword ? (
@@ -164,7 +170,9 @@ export default function Login() {
                     <Checkbox
                       id="remember"
                       checked={Boolean(field.value)}
-                      onCheckedChange={(checked) => field.onChange(Boolean(checked))}
+                      onCheckedChange={(checked) =>
+                        field.onChange(Boolean(checked))
+                      }
                     />
                   )}
                 />
@@ -175,7 +183,7 @@ export default function Login() {
 
           <Field>
             <Button type="submit" disabled={isSubmitting} className="w-full">
-              {isSubmitting ? "Signing in…" : "Sign in"}
+              {isSubmitting ? 'Signing in…' : 'Sign in'}
             </Button>
           </Field>
         </FieldGroup>

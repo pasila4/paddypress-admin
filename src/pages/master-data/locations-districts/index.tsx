@@ -1,10 +1,10 @@
-import * as React from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import * as React from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { MoreHorizontalIcon } from "lucide-react";
+import { MoreHorizontalIcon } from 'lucide-react';
 
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button, buttonVariants } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -12,16 +12,13 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import {
-  Field,
-  FieldLabel,
-} from "@/components/ui/field";
+} from '@/components/ui/table';
+import { Field, FieldLabel } from '@/components/ui/field';
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
-} from "@/components/ui/input-group";
+} from '@/components/ui/input-group';
 
 import {
   Dialog,
@@ -30,7 +27,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,21 +37,21 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+} from '@/components/ui/alert-dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu';
 
-import { Textarea } from "@/components/ui/textarea";
+import { Textarea } from '@/components/ui/textarea';
 
-import { LocationSearchCombobox } from "@/components/ui/location-search-combobox";
+import { LocationSearchCombobox } from '@/components/ui/location-search-combobox';
 
-import { useUiStore } from "@/store";
-import { useAuth } from "@/context/AuthContext";
-import { useDebounce } from "@/lib/useDebounce";
+import { useUiStore } from '@/store';
+import { useAuth } from '@/context/AuthContext';
+import { useDebounce } from '@/lib/useDebounce';
 import {
   listAdminDistricts,
   createAdminDistrict,
@@ -62,16 +59,12 @@ import {
   deactivateAdminDistrict,
   deleteAdminDistrictPermanently,
   bulkUploadDistricts,
-} from "@/lib/adminLocations";
-import type { AdminDistrict } from "@/types/adminLocations";
+} from '@/lib/adminLocations';
+import type { AdminDistrict } from '@/types/adminLocations';
 
 const DEFAULT_PAGE_SIZE = 10;
 
-import {
-  LocationsDistrictDialog,
-} from "./LocationsDistrictDialog";
-
-
+import { LocationsDistrictDialog } from './LocationsDistrictDialog';
 
 function BulkUploadDistrictsDialog({
   open,
@@ -84,13 +77,13 @@ function BulkUploadDistrictsDialog({
   onUpload: (parentId: string, items: string) => void;
   isUploading: boolean;
 }) {
-  const [stateId, setStateId] = React.useState("");
-  const [items, setItems] = React.useState("");
+  const [stateId, setStateId] = React.useState('');
+  const [items, setItems] = React.useState('');
 
   React.useEffect(() => {
     if (!open) {
-      setStateId("");
-      setItems("");
+      setStateId('');
+      setItems('');
     }
   }, [open]);
 
@@ -99,7 +92,9 @@ function BulkUploadDistrictsDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Bulk Upload Districts</DialogTitle>
-          <DialogDescription>Select state and enter comma separated district names.</DialogDescription>
+          <DialogDescription>
+            Select state and enter comma separated district names.
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <Field>
@@ -115,19 +110,21 @@ function BulkUploadDistrictsDialog({
             <FieldLabel>Districts (comma separated)</FieldLabel>
             <Textarea
               value={items}
-              onChange={e => setItems(e.target.value)}
+              onChange={(e) => setItems(e.target.value)}
               placeholder="District 1, District 2..."
               rows={5}
             />
           </Field>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
           <Button
             onClick={() => onUpload(stateId, items)}
             disabled={!stateId || !items.trim() || isUploading}
           >
-            {isUploading ? "Uploading..." : "Upload"}
+            {isUploading ? 'Uploading...' : 'Upload'}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -137,73 +134,89 @@ function BulkUploadDistrictsDialog({
 
 export default function LocationsDistrictsPage() {
   const { user } = useAuth();
-  const isAdmin = user?.role === "ADMIN";
+  const isAdmin = user?.role === 'ADMIN';
   const { showToast } = useUiStore();
   const queryClient = useQueryClient();
   const [page, setPage] = React.useState(1);
-  const [search, setSearch] = React.useState("");
-  const [stateFilter, setStateFilter] = React.useState("");
+  const [search, setSearch] = React.useState('');
+  const [stateFilter, setStateFilter] = React.useState('');
   const debouncedSearch = useDebounce(search, 300);
 
   const [createOpen, setCreateOpen] = React.useState(false);
   const [bulkOpen, setBulkOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<AdminDistrict | null>(null);
-  const [deactivateTarget, setDeactivateTarget] = React.useState<AdminDistrict | null>(null);
-  const [deleteTarget, setDeleteTarget] = React.useState<AdminDistrict | null>(null);
+  const [deactivateTarget, setDeactivateTarget] =
+    React.useState<AdminDistrict | null>(null);
+  const [deleteTarget, setDeleteTarget] = React.useState<AdminDistrict | null>(
+    null,
+  );
 
   const query = useQuery({
-    queryKey: ["adminDistricts", page, debouncedSearch, stateFilter],
-    queryFn: () => listAdminDistricts({ page, limit: DEFAULT_PAGE_SIZE, search: debouncedSearch, stateId: stateFilter }),
+    queryKey: ['adminDistricts', page, debouncedSearch, stateFilter],
+    queryFn: () =>
+      listAdminDistricts({
+        page,
+        limit: DEFAULT_PAGE_SIZE,
+        search: debouncedSearch,
+        stateId: stateFilter,
+      }),
   });
 
   const createMutation = useMutation({
     mutationFn: createAdminDistrict,
     onSuccess: () => {
-      showToast("District created.", "success");
+      showToast('District created.', 'success');
       setCreateOpen(false);
-      queryClient.invalidateQueries({ queryKey: ["adminDistricts"] });
+      queryClient.invalidateQueries({ queryKey: ['adminDistricts'] });
     },
-    onError: (err) => showToast(err instanceof Error ? err.message : "Failed.", "error"),
+    onError: (err) =>
+      showToast(err instanceof Error ? err.message : 'Failed.', 'error'),
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data: { id: string, payload: any }) => updateAdminDistrict(data.id, data.payload),
+    mutationFn: (data: { id: string; payload: any }) =>
+      updateAdminDistrict(data.id, data.payload),
     onSuccess: () => {
-      showToast("District updated.", "success");
+      showToast('District updated.', 'success');
       setEditing(null);
-      queryClient.invalidateQueries({ queryKey: ["adminDistricts"] });
+      queryClient.invalidateQueries({ queryKey: ['adminDistricts'] });
     },
-    onError: (err) => showToast(err instanceof Error ? err.message : "Failed.", "error"),
+    onError: (err) =>
+      showToast(err instanceof Error ? err.message : 'Failed.', 'error'),
   });
 
   const deactivateMutation = useMutation({
     mutationFn: deactivateAdminDistrict,
     onSuccess: () => {
-      showToast("District deactivated.", "success");
+      showToast('District deactivated.', 'success');
       setDeactivateTarget(null);
-      queryClient.invalidateQueries({ queryKey: ["adminDistricts"] });
+      queryClient.invalidateQueries({ queryKey: ['adminDistricts'] });
     },
-    onError: (err) => showToast(err instanceof Error ? err.message : "Failed.", "error"),
+    onError: (err) =>
+      showToast(err instanceof Error ? err.message : 'Failed.', 'error'),
   });
 
   const deleteMutation = useMutation({
     mutationFn: deleteAdminDistrictPermanently,
     onSuccess: () => {
-      showToast("District deleted.", "success");
+      showToast('District deleted.', 'success');
       setDeleteTarget(null);
-      queryClient.invalidateQueries({ queryKey: ["adminDistricts"] });
+      queryClient.invalidateQueries({ queryKey: ['adminDistricts'] });
     },
-    onError: (err) => showToast(err instanceof Error ? err.message : "Failed.", "error"),
+    onError: (err) =>
+      showToast(err instanceof Error ? err.message : 'Failed.', 'error'),
   });
 
   const bulkUploadMutation = useMutation({
-    mutationFn: (data: { parentId: string, items: string }) => bulkUploadDistricts(data.parentId, data.items),
+    mutationFn: (data: { parentId: string; items: string }) =>
+      bulkUploadDistricts(data.parentId, data.items),
     onSuccess: () => {
-      showToast("Districts uploaded.", "success");
+      showToast('Districts uploaded.', 'success');
       setBulkOpen(false);
-      queryClient.invalidateQueries({ queryKey: ["adminDistricts"] });
+      queryClient.invalidateQueries({ queryKey: ['adminDistricts'] });
     },
-    onError: (err) => showToast(err instanceof Error ? err.message : "Failed.", "error"),
+    onError: (err) =>
+      showToast(err instanceof Error ? err.message : 'Failed.', 'error'),
   });
 
   const items = query.data?.data?.items ?? [];
@@ -218,8 +231,12 @@ export default function LocationsDistrictsPage() {
           <div className="flex gap-2">
             {isAdmin && (
               <>
-                <Button variant="outline" onClick={() => setBulkOpen(true)}>Bulk Upload</Button>
-                <Button onClick={() => setCreateOpen(true)}>New District</Button>
+                <Button variant="outline" onClick={() => setBulkOpen(true)}>
+                  Bulk Upload
+                </Button>
+                <Button onClick={() => setCreateOpen(true)}>
+                  New District
+                </Button>
               </>
             )}
           </div>
@@ -228,7 +245,11 @@ export default function LocationsDistrictsPage() {
           <div className="flex gap-4">
             <InputGroup className="max-w-xs">
               <InputGroupAddon>Search</InputGroupAddon>
-              <InputGroupInput value={search} onChange={e => setSearch(e.target.value)} placeholder="Search districts..." />
+              <InputGroupInput
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search districts..."
+              />
             </InputGroup>
             <div className="w-[240px]">
               <LocationSearchCombobox
@@ -248,34 +269,63 @@ export default function LocationsDistrictsPage() {
                   <TableHead>Code</TableHead>
                   <TableHead>State</TableHead>
                   <TableHead>Status</TableHead>
-                  {isAdmin && <TableHead className="text-right">Actions</TableHead>}
+                  {isAdmin && (
+                    <TableHead className="text-right">Actions</TableHead>
+                  )}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {query.isLoading ? (
-                  <TableRow><TableCell colSpan={5} className="text-center">Loading...</TableCell></TableRow>
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center">
+                      Loading...
+                    </TableCell>
+                  </TableRow>
                 ) : items.length === 0 ? (
-                  <TableRow><TableCell colSpan={5} className="text-center">No districts found.</TableCell></TableRow>
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center">
+                      No districts found.
+                    </TableCell>
+                  </TableRow>
                 ) : (
-                  items.map(item => (
+                  items.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell>{item.name}</TableCell>
-                      <TableCell>{item.code || "-"}</TableCell>
-                      <TableCell>{item.state?.name || "-"}</TableCell>
-                      <TableCell>{item.isActive ? "Active" : "Inactive"}</TableCell>
+                      <TableCell>{item.code || '-'}</TableCell>
+                      <TableCell>{item.state?.name || '-'}</TableCell>
+                      <TableCell>
+                        {item.isActive ? 'Active' : 'Inactive'}
+                      </TableCell>
                       {isAdmin && (
                         <TableCell className="text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger
                               aria-label="Open actions"
-                              className={buttonVariants({ size: "icon-sm", variant: "ghost" })}
+                              className={buttonVariants({
+                                size: 'icon-sm',
+                                variant: 'ghost',
+                              })}
                             >
                               <MoreHorizontalIcon className="size-4" />
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => setEditing(item)}>Edit</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => setDeactivateTarget(item)} disabled={!item.isActive}>Deactivate</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => setDeleteTarget(item)} className="text-destructive">Delete</DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => setEditing(item)}
+                              >
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => setDeactivateTarget(item)}
+                                disabled={!item.isActive}
+                              >
+                                Deactivate
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => setDeleteTarget(item)}
+                                className="text-destructive"
+                              >
+                                Delete
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
@@ -291,8 +341,22 @@ export default function LocationsDistrictsPage() {
               Page {page} of {totalPages} · {total} total
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1}>Previous</Button>
-              <Button variant="outline" size="sm" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages}>Next</Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages}
+              >
+                Next
+              </Button>
             </div>
           </div>
         </CardContent>
@@ -302,7 +366,7 @@ export default function LocationsDistrictsPage() {
         open={createOpen}
         onOpenChange={setCreateOpen}
         title="New District"
-        initialValues={{ stateId: "", name: "", isActive: true }}
+        initialValues={{ stateId: '', name: '', isActive: true }}
         onSave={(data) => {
           const payload = { ...data };
           if (!payload.code) {
@@ -318,8 +382,15 @@ export default function LocationsDistrictsPage() {
           open={true}
           onOpenChange={(open) => !open && setEditing(null)}
           title="Edit District"
-          initialValues={{ stateId: editing.stateId, name: editing.name, code: editing.code || "", isActive: editing.isActive }}
-          onSave={(data) => updateMutation.mutate({ id: editing.id, payload: data })}
+          initialValues={{
+            stateId: editing.stateId,
+            name: editing.name,
+            code: editing.code || '',
+            isActive: editing.isActive,
+          }}
+          onSave={(data) =>
+            updateMutation.mutate({ id: editing.id, payload: data })
+          }
           isSaving={updateMutation.isPending}
         />
       )}
@@ -327,32 +398,57 @@ export default function LocationsDistrictsPage() {
       <BulkUploadDistrictsDialog
         open={bulkOpen}
         onOpenChange={setBulkOpen}
-        onUpload={(pid, txt) => bulkUploadMutation.mutate({ parentId: pid, items: txt })}
+        onUpload={(pid, txt) =>
+          bulkUploadMutation.mutate({ parentId: pid, items: txt })
+        }
         isUploading={bulkUploadMutation.isPending}
       />
       {/* Alert Dialogs for Delete/Deactivate omitted for brevity but should be added if needed, I have logic for them above. I will add them. */}
-      <AlertDialog open={!!deactivateTarget} onOpenChange={(o) => !o && setDeactivateTarget(null)}>
+      <AlertDialog
+        open={!!deactivateTarget}
+        onOpenChange={(o) => !o && setDeactivateTarget(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Deactivate District?</AlertDialogTitle>
-            <AlertDialogDescription>This will deactivate the district.</AlertDialogDescription>
+            <AlertDialogDescription>
+              This will deactivate the district.
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => deactivateTarget && deactivateMutation.mutate(deactivateTarget.id)}>Deactivate</AlertDialogAction>
+            <AlertDialogAction
+              onClick={() =>
+                deactivateTarget &&
+                deactivateMutation.mutate(deactivateTarget.id)
+              }
+            >
+              Deactivate
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
+      <AlertDialog
+        open={!!deleteTarget}
+        onOpenChange={(o) => !o && setDeleteTarget(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete District?</AlertDialogTitle>
-            <AlertDialogDescription>Permanently delete district?</AlertDialogDescription>
+            <AlertDialogDescription>
+              Permanently delete district?
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}>Delete</AlertDialogAction>
+            <AlertDialogAction
+              onClick={() =>
+                deleteTarget && deleteMutation.mutate(deleteTarget.id)
+              }
+            >
+              Delete
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

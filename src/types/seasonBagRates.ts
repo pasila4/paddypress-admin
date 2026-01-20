@@ -1,9 +1,9 @@
-import { z } from "zod";
+import { z } from 'zod';
 
-export const BagSizeSchema = z.enum(["KG_40", "KG_75", "KG_100"]);
+export const BagSizeSchema = z.enum(['KG_40', 'KG_75', 'KG_100']);
 export type BagSize = z.infer<typeof BagSizeSchema>;
 
-export const SeasonCodeSchema = z.enum(["KHARIF", "RABI"]);
+export const SeasonCodeSchema = z.enum(['KHARIF', 'RABI']);
 export type SeasonCode = z.infer<typeof SeasonCodeSchema>;
 
 export const SeasonBagRateRatesBySizeSchema = z.object({
@@ -44,13 +44,13 @@ export const UpsertSeasonBagRatesRequestSchema = z.object({
       z.object({
         riceTypeCode: z.string().min(1),
         rates: z.object({
-          KG_40: z.number().min(0, "Enter a valid rate."),
-          KG_75: z.number().min(0, "Enter a valid rate."),
-          KG_100: z.number().min(0, "Enter a valid rate."),
+          KG_40: z.number().min(0, 'Enter a valid rate.'),
+          KG_75: z.number().min(0, 'Enter a valid rate.'),
+          KG_100: z.number().min(0, 'Enter a valid rate.'),
         }),
-      })
+      }),
     )
-    .min(1, "Add at least one rate."),
+    .min(1, 'Add at least one rate.'),
 });
 
 export type UpsertSeasonBagRatesRequest = z.infer<

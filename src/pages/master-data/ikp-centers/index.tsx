@@ -1,8 +1,8 @@
-import * as React from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import * as React from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button, buttonVariants } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -10,18 +10,15 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import {
-  Field,
-  FieldLabel,
-} from "@/components/ui/field";
+} from '@/components/ui/table';
+import { Field, FieldLabel } from '@/components/ui/field';
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
-} from "@/components/ui/input-group";
+} from '@/components/ui/input-group';
 
-import { Checkbox } from "@/components/ui/checkbox";
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,20 +28,20 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+} from '@/components/ui/alert-dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { MoreHorizontalIcon } from "lucide-react";
+} from '@/components/ui/dropdown-menu';
+import { MoreHorizontalIcon } from 'lucide-react';
 
-import { LocationSearchCombobox } from "@/components/ui/location-search-combobox";
-import { BulkUploadIkpCentersDialog } from "@/components/BulkUploadIkpCentersDialog";
+import { LocationSearchCombobox } from '@/components/ui/location-search-combobox';
+import { BulkUploadIkpCentersDialog } from '@/components/BulkUploadIkpCentersDialog';
 
-import { useUiStore } from "@/store";
-import { useDebounce } from "@/lib/useDebounce";
+import { useUiStore } from '@/store';
+import { useDebounce } from '@/lib/useDebounce';
 import {
   createAdminIkpCenter,
   deactivateAdminIkpCenter,
@@ -52,33 +49,27 @@ import {
   listAdminIkpCenters,
   updateAdminIkpCenter,
   bulkUploadIkpCenters,
-} from "@/lib/adminIkpCenters";
+} from '@/lib/adminIkpCenters';
 import type {
   AdminIkpCenter,
   UpdateAdminIkpCenterRequest,
-} from "@/types/adminIkpCenters";
-import {
-
-} from "@/lib/adminLocations";
-
+} from '@/types/adminIkpCenters';
+import {} from '@/lib/adminLocations';
 
 const DEFAULT_PAGE_SIZE = 10;
 
-import {
-  IkpCenterDialog,
-  type IkpCenterFormData,
-} from "./IkpCenterDialog";
+import { IkpCenterDialog, type IkpCenterFormData } from './IkpCenterDialog';
 
 export default function IkpCentersPage() {
   const { showToast } = useUiStore();
   const queryClient = useQueryClient();
 
-  const [searchInput, setSearchInput] = React.useState("");
+  const [searchInput, setSearchInput] = React.useState('');
   const debouncedSearch = useDebounce(searchInput, 300);
 
   const [filters, setFilters] = React.useState({
-    search: "",
-    villageId: "",
+    search: '',
+    villageId: '',
     includeInactive: true,
   });
 
@@ -94,13 +85,15 @@ export default function IkpCentersPage() {
   const [editing, setEditing] = React.useState<AdminIkpCenter | null>(null);
   const [deactivateTarget, setDeactivateTarget] =
     React.useState<AdminIkpCenter | null>(null);
-  const [deleteTarget, setDeleteTarget] = React.useState<AdminIkpCenter | null>(null);
+  const [deleteTarget, setDeleteTarget] = React.useState<AdminIkpCenter | null>(
+    null,
+  );
 
   const [createInitialValues, setCreateInitialValues] =
     React.useState<IkpCenterFormData>({
-      villageId: "",
-      name: "",
-      notes: "",
+      villageId: '',
+      name: '',
+      notes: '',
       isActive: true,
     });
 
@@ -110,10 +103,8 @@ export default function IkpCentersPage() {
     setPage(1);
   }, [filters]);
 
-
-
   const listQuery = useQuery({
-    queryKey: ["adminIkpCenters", page, limit, filters],
+    queryKey: ['adminIkpCenters', page, limit, filters],
     queryFn: () =>
       listAdminIkpCenters({
         page,
@@ -124,29 +115,27 @@ export default function IkpCentersPage() {
       }),
   });
 
-
-
   const createMutation = useMutation({
     mutationFn: createAdminIkpCenter,
     onSuccess: () => {
-      showToast("Center created.", "success");
+      showToast('Center created.', 'success');
       setCreateInitialValues((p) => {
         const last = lastCreateValuesRef.current;
         return {
           ...p,
           villageId: last?.villageId ?? p.villageId,
-          name: "",
-          notes: "",
+          name: '',
+          notes: '',
           isActive: last?.isActive ?? p.isActive,
         };
       });
-      queryClient.invalidateQueries({ queryKey: ["adminIkpCenters"] });
-      queryClient.invalidateQueries({ queryKey: ["adminIkpStatesForCenters"] });
+      queryClient.invalidateQueries({ queryKey: ['adminIkpCenters'] });
+      queryClient.invalidateQueries({ queryKey: ['adminIkpStatesForCenters'] });
     },
     onError: (err) => {
       showToast(
-        err instanceof Error ? err.message : "Failed to create center.",
-        "error"
+        err instanceof Error ? err.message : 'Failed to create center.',
+        'error',
       );
     },
   });
@@ -154,13 +143,16 @@ export default function IkpCentersPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteAdminIkpCenterPermanently(id),
     onSuccess: () => {
-      showToast("Center deleted.", "success");
+      showToast('Center deleted.', 'success');
       setDeleteTarget(null);
-      queryClient.invalidateQueries({ queryKey: ["adminIkpCenters"] });
-      queryClient.invalidateQueries({ queryKey: ["adminIkpStatesForCenters"] });
+      queryClient.invalidateQueries({ queryKey: ['adminIkpCenters'] });
+      queryClient.invalidateQueries({ queryKey: ['adminIkpStatesForCenters'] });
     },
     onError: (err) => {
-      showToast(err instanceof Error ? err.message : "Failed to delete center.", "error");
+      showToast(
+        err instanceof Error ? err.message : 'Failed to delete center.',
+        'error',
+      );
     },
   });
 
@@ -168,15 +160,15 @@ export default function IkpCentersPage() {
     mutationFn: (args: { id: string; payload: UpdateAdminIkpCenterRequest }) =>
       updateAdminIkpCenter(args.id, args.payload),
     onSuccess: () => {
-      showToast("Center updated.", "success");
+      showToast('Center updated.', 'success');
       setEditing(null);
-      queryClient.invalidateQueries({ queryKey: ["adminIkpCenters"] });
-      queryClient.invalidateQueries({ queryKey: ["adminIkpStatesForCenters"] });
+      queryClient.invalidateQueries({ queryKey: ['adminIkpCenters'] });
+      queryClient.invalidateQueries({ queryKey: ['adminIkpStatesForCenters'] });
     },
     onError: (err) => {
       showToast(
-        err instanceof Error ? err.message : "Failed to update center.",
-        "error"
+        err instanceof Error ? err.message : 'Failed to update center.',
+        'error',
       );
     },
   });
@@ -184,15 +176,15 @@ export default function IkpCentersPage() {
   const deactivateMutation = useMutation({
     mutationFn: (id: string) => deactivateAdminIkpCenter(id),
     onSuccess: () => {
-      showToast("Center deactivated.", "success");
+      showToast('Center deactivated.', 'success');
       setDeactivateTarget(null);
-      queryClient.invalidateQueries({ queryKey: ["adminIkpCenters"] });
-      queryClient.invalidateQueries({ queryKey: ["adminIkpStatesForCenters"] });
+      queryClient.invalidateQueries({ queryKey: ['adminIkpCenters'] });
+      queryClient.invalidateQueries({ queryKey: ['adminIkpStatesForCenters'] });
     },
     onError: (err) => {
       showToast(
-        err instanceof Error ? err.message : "Failed to deactivate center.",
-        "error"
+        err instanceof Error ? err.message : 'Failed to deactivate center.',
+        'error',
       );
     },
   });
@@ -201,19 +193,21 @@ export default function IkpCentersPage() {
     mutationFn: (args: { villageId: string; items: string }) =>
       bulkUploadIkpCenters(args.villageId, args.items),
     onSuccess: () => {
-      showToast("Centers uploaded successfully.", "success");
+      showToast('Centers uploaded successfully.', 'success');
       setBulkOpen(false);
-      queryClient.invalidateQueries({ queryKey: ["adminIkpCenters"] });
+      queryClient.invalidateQueries({ queryKey: ['adminIkpCenters'] });
     },
     onError: (err) => {
-      showToast(err instanceof Error ? err.message : "Failed to upload centers.", "error");
-    }
+      showToast(
+        err instanceof Error ? err.message : 'Failed to upload centers.',
+        'error',
+      );
+    },
   });
 
   const items = listQuery.data?.data.items ?? [];
   const total = listQuery.data?.data.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / limit));
-
 
   return (
     <div className="space-y-4">
@@ -227,7 +221,9 @@ export default function IkpCentersPage() {
             </div>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setBulkOpen(true)}>Bulk Upload</Button>
+            <Button variant="outline" onClick={() => setBulkOpen(true)}>
+              Bulk Upload
+            </Button>
             <Button onClick={() => setCreateOpen(true)}>New center</Button>
           </div>
         </CardHeader>
@@ -309,16 +305,22 @@ export default function IkpCentersPage() {
                         <div className="space-y-0.5">
                           <div className="font-medium">{row.name}</div>
                           <div className="text-[11px] text-muted-foreground">
-                            {row.state} / {row.district} / {row.mandal} / {row.village}
+                            {row.state} / {row.district} / {row.mandal} /{' '}
+                            {row.village}
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="text-xs">{row.isActive ? "Active" : "Inactive"}</TableCell>
+                      <TableCell className="text-xs">
+                        {row.isActive ? 'Active' : 'Inactive'}
+                      </TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger
                             aria-label="Open actions"
-                            className={buttonVariants({ size: "icon-sm", variant: "ghost" })}
+                            className={buttonVariants({
+                              size: 'icon-sm',
+                              variant: 'ghost',
+                            })}
                           >
                             <MoreHorizontalIcon className="size-3.5" />
                           </DropdownMenuTrigger>
@@ -332,7 +334,9 @@ export default function IkpCentersPage() {
                             >
                               Deactivate
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setDeleteTarget(row)}>
+                            <DropdownMenuItem
+                              onClick={() => setDeleteTarget(row)}
+                            >
                               Delete
                             </DropdownMenuItem>
                           </DropdownMenuContent>
@@ -375,7 +379,7 @@ export default function IkpCentersPage() {
             <div className="text-xs text-destructive">
               {listQuery.error instanceof Error
                 ? listQuery.error.message
-                : "Failed to load centers."}
+                : 'Failed to load centers.'}
             </div>
           )}
         </CardContent>
@@ -394,7 +398,9 @@ export default function IkpCentersPage() {
       <BulkUploadIkpCentersDialog
         open={bulkOpen}
         onOpenChange={setBulkOpen}
-        onUpload={(villageId, items) => bulkUploadMutation.mutate({ villageId, items })}
+        onUpload={(villageId, items) =>
+          bulkUploadMutation.mutate({ villageId, items })
+        }
         isUploading={bulkUploadMutation.isPending}
       />
 
@@ -408,9 +414,9 @@ export default function IkpCentersPage() {
         title="Edit center"
         description="Update center details."
         initialValues={{
-          villageId: editing?.villageId ?? "",
-          name: editing?.name ?? "",
-          notes: editing?.notes ?? "",
+          villageId: editing?.villageId ?? '',
+          name: editing?.name ?? '',
+          notes: editing?.notes ?? '',
           isActive: editing?.isActive ?? true,
         }}
         onSave={(data) => {
@@ -449,13 +455,16 @@ export default function IkpCentersPage() {
               }}
               disabled={deactivateMutation.isPending}
             >
-              {deactivateMutation.isPending ? "Deactivating…" : "Deactivate"}
+              {deactivateMutation.isPending ? 'Deactivating…' : 'Deactivate'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog open={Boolean(deleteTarget)} onOpenChange={(open) => (!open ? setDeleteTarget(null) : null)}>
+      <AlertDialog
+        open={Boolean(deleteTarget)}
+        onOpenChange={(open) => (!open ? setDeleteTarget(null) : null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete center permanently?</AlertDialogTitle>
@@ -472,7 +481,7 @@ export default function IkpCentersPage() {
               }}
               disabled={deleteMutation.isPending}
             >
-              {deleteMutation.isPending ? "Deleting…" : "Delete"}
+              {deleteMutation.isPending ? 'Deleting…' : 'Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

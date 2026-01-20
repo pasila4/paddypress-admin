@@ -1,6 +1,6 @@
-import { z } from "zod";
+import { z } from 'zod';
 
-export const SeasonCodeSchema = z.enum(["KHARIF", "RABI"]);
+export const SeasonCodeSchema = z.enum(['KHARIF', 'RABI']);
 export type SeasonCode = z.infer<typeof SeasonCodeSchema>;
 
 export const SeasonSchema = z.object({
@@ -38,7 +38,11 @@ export const CropYearResponseSchema = z.object({
 });
 
 export const CreateCropYearRequestSchema = z.object({
-  startYear: z.number().int().min(2000, "Enter a valid year.").max(3000, "Enter a valid year."),
+  startYear: z
+    .number()
+    .int()
+    .min(2000, 'Enter a valid year.')
+    .max(3000, 'Enter a valid year.'),
 });
 
 export type CreateCropYearRequest = z.infer<typeof CreateCropYearRequestSchema>;

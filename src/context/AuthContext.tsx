@@ -1,10 +1,10 @@
-import * as React from "react";
-import { useMutation } from "@tanstack/react-query";
+import * as React from 'react';
+import { useMutation } from '@tanstack/react-query';
 
-import { applyToken, loginApi } from "../lib/auth";
-import { setOnUnauthorized } from "../lib/api";
-import type { User } from "../types/auth";
-import { useAuthStore, useUiStore } from "../store";
+import { applyToken, loginApi } from '../lib/auth';
+import { setOnUnauthorized } from '../lib/api';
+import type { User } from '../types/auth';
+import { useAuthStore, useUiStore } from '../store';
 
 interface AuthContextValue {
   token: string | null;
@@ -14,7 +14,9 @@ interface AuthContextValue {
   logout: () => void;
 }
 
-const AuthContext = React.createContext<AuthContextValue | undefined>(undefined);
+const AuthContext = React.createContext<AuthContextValue | undefined>(
+  undefined,
+);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { showToast } = useUiStore();
@@ -37,7 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     setOnUnauthorized(() => {
       clearSession();
-      showToast("Session expired. Please sign in again.", "warning");
+      showToast('Session expired. Please sign in again.', 'warning');
     });
     return () => setOnUnauthorized(null);
   }, [clearSession, showToast]);
@@ -58,7 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             token: res.data.token,
             user: res.data.user,
           },
-          remember
+          remember,
         );
       },
       logout() {
@@ -73,7 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       showToast,
       token,
       user,
-    ]
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -81,6 +83,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export function useAuth() {
   const ctx = React.useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
   return ctx;
 }

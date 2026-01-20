@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
 /**
  * Custom hook to debounce a value
@@ -21,4 +21,3 @@ export function useDebounce<T>(value: T, delay: number = 300): T {
 
   return debouncedValue;
 }
-

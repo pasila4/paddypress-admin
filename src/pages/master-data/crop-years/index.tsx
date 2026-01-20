@@ -1,23 +1,23 @@
-import * as React from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import * as React from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Field,
   FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
-} from "@/components/ui/field";
+} from '@/components/ui/field';
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
-} from "@/components/ui/input-group";
-import { useUiStore } from "@/store";
-import { createCropYear, listCropYears } from "@/lib/cropYears";
-import type { CropYear } from "@/types/cropYears";
+} from '@/components/ui/input-group';
+import { useUiStore } from '@/store';
+import { createCropYear, listCropYears } from '@/lib/cropYears';
+import type { CropYear } from '@/types/cropYears';
 
 function sortSeasons(a: { code: string }, b: { code: string }): number {
   const order: Record<string, number> = { KHARIF: 1, RABI: 2 };
@@ -27,7 +27,7 @@ function sortSeasons(a: { code: string }, b: { code: string }): number {
 function parseStartYearFromLabel(raw: string): number {
   const trimmed = raw.trim();
   if (!trimmed) {
-    throw new Error("Enter a crop year (example: 2025-26).");
+    throw new Error('Enter a crop year (example: 2025-26).');
   }
 
   const fourDigit = /^\d{4}$/.exec(trimmed);
@@ -54,18 +54,18 @@ function parseStartYearFromLabel(raw: string): number {
     }
   }
 
-  throw new Error("Enter a crop year (example: 2025-26).");
+  throw new Error('Enter a crop year (example: 2025-26).');
 }
 
 export default function CropYearsPage() {
   const { showToast } = useUiStore();
   const queryClient = useQueryClient();
 
-  const [startYearRaw, setStartYearRaw] = React.useState("");
+  const [startYearRaw, setStartYearRaw] = React.useState('');
   const [formError, setFormError] = React.useState<string | null>(null);
 
   const cropYearsQuery = useQuery({
-    queryKey: ["cropYears", 1, 50],
+    queryKey: ['cropYears', 1, 50],
     queryFn: () => listCropYears({ page: 1, limit: 50 }),
   });
 
@@ -75,15 +75,15 @@ export default function CropYearsPage() {
       return createCropYear({ startYear });
     },
     onSuccess: (res) => {
-      showToast(res.message ?? "Crop year created.", "success");
-      void queryClient.invalidateQueries({ queryKey: ["cropYears"] });
-      setStartYearRaw("");
+      showToast(res.message ?? 'Crop year created.', 'success');
+      void queryClient.invalidateQueries({ queryKey: ['cropYears'] });
+      setStartYearRaw('');
       setFormError(null);
     },
     onError: (err: unknown) => {
-      const message = err instanceof Error ? err.message : "Create failed.";
+      const message = err instanceof Error ? err.message : 'Create failed.';
       setFormError(message);
-      showToast(message, "error");
+      showToast(message, 'error');
     },
   });
 
@@ -94,14 +94,16 @@ export default function CropYearsPage() {
       <CardHeader>
         <CardTitle>Crop Years</CardTitle>
         <div className="text-sm text-muted-foreground">
-          Admin creates crop years. Kharif and Rabi seasons are created automatically.
+          Admin creates crop years. Kharif and Rabi seasons are created
+          automatically.
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-3">
           <div className="text-sm font-medium">Create crop year</div>
           <FieldDescription>
-            Enter a crop year (example: 2025-26). The system creates Kharif and Rabi seasons.
+            Enter a crop year (example: 2025-26). The system creates Kharif and
+            Rabi seasons.
           </FieldDescription>
 
           <FieldGroup className="max-w-sm">
@@ -121,8 +123,11 @@ export default function CropYearsPage() {
 
             {formError ? <FieldError>{formError}</FieldError> : null}
 
-            <Button disabled={createMutation.isPending} onClick={() => createMutation.mutate()}>
-              {createMutation.isPending ? "Creating…" : "Create"}
+            <Button
+              disabled={createMutation.isPending}
+              onClick={() => createMutation.mutate()}
+            >
+              {createMutation.isPending ? 'Creating…' : 'Create'}
             </Button>
           </FieldGroup>
         </div>
@@ -132,9 +137,13 @@ export default function CropYearsPage() {
           {cropYearsQuery.isLoading ? (
             <div className="text-sm text-muted-foreground">Loading…</div>
           ) : cropYearsQuery.isError ? (
-            <div className="text-sm text-destructive">Failed to load crop years.</div>
+            <div className="text-sm text-destructive">
+              Failed to load crop years.
+            </div>
           ) : items.length === 0 ? (
-            <div className="text-sm text-muted-foreground">No crop years found.</div>
+            <div className="text-sm text-muted-foreground">
+              No crop years found.
+            </div>
           ) : (
             <div className="overflow-hidden rounded-md border border-border">
               <div className="grid grid-cols-[160px_110px_1fr] gap-2 bg-muted px-3 py-2 text-xs font-medium">
@@ -155,7 +164,7 @@ export default function CropYearsPage() {
                         .slice()
                         .sort(sortSeasons)
                         .map((s) => s.name)
-                        .join(" · ")}
+                        .join(' · ')}
                     </div>
                   </div>
                 ))}

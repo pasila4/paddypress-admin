@@ -1,26 +1,31 @@
-import * as React from "react";
-import { useSearchParams } from "react-router-dom";
+import * as React from 'react';
+import { useSearchParams } from 'react-router-dom';
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-import LocationsStatesPage from "./locations-states";
-import LocationsDistrictsPage from "./locations-districts";
-import LocationsMandalsPage from "./locations-mandals";
-import LocationsVillagesPage from "./locations-villages";
+import LocationsStatesPage from './locations-states';
+import LocationsDistrictsPage from './locations-districts';
+import LocationsMandalsPage from './locations-mandals';
+import LocationsVillagesPage from './locations-villages';
 
-const allowedTabs = ["states", "districts", "mandals", "villages"] as const;
+const allowedTabs = ['states', 'districts', 'mandals', 'villages'] as const;
 
 type TabValue = (typeof allowedTabs)[number];
 
 function normalizeTab(value: string | null): TabValue {
-  if (!value) return "states";
+  if (!value) return 'states';
   const v = value.trim().toLowerCase();
-  return (allowedTabs as readonly string[]).includes(v) ? (v as TabValue) : "states";
+  return (allowedTabs as readonly string[]).includes(v)
+    ? (v as TabValue)
+    : 'states';
 }
 
 export default function LocationsMasterPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const tab = React.useMemo(() => normalizeTab(searchParams.get("tab")), [searchParams]);
+  const tab = React.useMemo(
+    () => normalizeTab(searchParams.get('tab')),
+    [searchParams],
+  );
 
   return (
     <Tabs
@@ -28,7 +33,7 @@ export default function LocationsMasterPage() {
       onValueChange={(next) => {
         const nextTab = normalizeTab(next);
         const sp = new URLSearchParams(searchParams);
-        sp.set("tab", nextTab);
+        sp.set('tab', nextTab);
         setSearchParams(sp, { replace: true });
       }}
     >

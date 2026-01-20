@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 export const AdminByProductSchema = z.object({
   id: z.string(),
@@ -17,7 +17,9 @@ export const AdminByProductResponseSchema = z.object({
   message: z.string().optional(),
 });
 
-export type AdminByProductResponse = z.infer<typeof AdminByProductResponseSchema>;
+export type AdminByProductResponse = z.infer<
+  typeof AdminByProductResponseSchema
+>;
 
 export const AdminByProductsListResponseSchema = z.object({
   success: z.boolean(),
@@ -30,7 +32,9 @@ export const AdminByProductsListResponseSchema = z.object({
   message: z.string().optional(),
 });
 
-export type AdminByProductsListResponse = z.infer<typeof AdminByProductsListResponseSchema>;
+export type AdminByProductsListResponse = z.infer<
+  typeof AdminByProductsListResponseSchema
+>;
 
 export const CreateAdminByProductRequestSchema = z.object({
   name: z.string().min(1),
@@ -38,7 +42,9 @@ export const CreateAdminByProductRequestSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
-export type CreateAdminByProductRequest = z.infer<typeof CreateAdminByProductRequestSchema>;
+export type CreateAdminByProductRequest = z.infer<
+  typeof CreateAdminByProductRequestSchema
+>;
 
 export const UpdateAdminByProductRequestSchema = z.object({
   name: z.string().min(1).optional(),
@@ -46,4 +52,6 @@ export const UpdateAdminByProductRequestSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
-export type UpdateAdminByProductRequest = z.infer<typeof UpdateAdminByProductRequestSchema>;
+export type UpdateAdminByProductRequest = z.infer<
+  typeof UpdateAdminByProductRequestSchema
+>;

@@ -1,10 +1,9 @@
-import * as React from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import * as React from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button, buttonVariants } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -12,8 +11,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox";
+} from '@/components/ui/table';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -21,27 +20,24 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Field,
-  FieldLabel,
-} from "@/components/ui/field";
+} from '@/components/ui/dropdown-menu';
+import { Field, FieldLabel } from '@/components/ui/field';
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
-} from "@/components/ui/input-group";
-import { MoreHorizontalIcon } from "lucide-react";
+} from '@/components/ui/input-group';
+import { MoreHorizontalIcon } from 'lucide-react';
 
-import { useUiStore } from "@/store";
-import { useAuth } from "@/context/AuthContext";
-import { useDebounce } from "@/lib/useDebounce";
+import { useUiStore } from '@/store';
+import { useAuth } from '@/context/AuthContext';
+import { useDebounce } from '@/lib/useDebounce';
 import {
   createAdminState,
   deactivateAdminState,
@@ -49,32 +45,32 @@ import {
   listAdminStates,
   updateAdminState,
   bulkUploadStates,
-} from "@/lib/adminLocations";
-import type { AdminState } from "@/types/adminLocations";
-import { BulkUploadDialog } from "@/components/BulkUploadDialog";
+} from '@/lib/adminLocations';
+import type { AdminState } from '@/types/adminLocations';
+import { BulkUploadDialog } from '@/components/BulkUploadDialog';
 
 const DEFAULT_PAGE_SIZE = 10;
 
 import {
   LocationsStateDialog,
   type StateFormData,
-} from "./LocationsStateDialog";
+} from './LocationsStateDialog';
 
 function ActiveBadge({ isActive }: { isActive: boolean }) {
   return (
-    <Badge variant={isActive ? "default" : "outline"}>
-      {isActive ? "Active" : "Inactive"}
+    <Badge variant={isActive ? 'default' : 'outline'}>
+      {isActive ? 'Active' : 'Inactive'}
     </Badge>
   );
 }
 
 export default function LocationsStatesPage() {
   const { user } = useAuth();
-  const isAdmin = user?.role === "ADMIN";
+  const isAdmin = user?.role === 'ADMIN';
   const { showToast } = useUiStore();
   const queryClient = useQueryClient();
 
-  const [searchInput, setSearchInput] = React.useState("");
+  const [searchInput, setSearchInput] = React.useState('');
   const debouncedSearch = useDebounce(searchInput, 300);
   const [includeInactive, setIncludeInactive] = React.useState(true);
 
@@ -87,12 +83,14 @@ export default function LocationsStatesPage() {
   const [editing, setEditing] = React.useState<AdminState | null>(null);
   const [deactivateTarget, setDeactivateTarget] =
     React.useState<AdminState | null>(null);
-  const [deleteTarget, setDeleteTarget] = React.useState<AdminState | null>(null);
+  const [deleteTarget, setDeleteTarget] = React.useState<AdminState | null>(
+    null,
+  );
 
   const [createInitialValues, setCreateInitialValues] =
     React.useState<StateFormData>({
-      code: "",
-      name: "",
+      code: '',
+      name: '',
       isActive: true,
     });
 
@@ -101,7 +99,7 @@ export default function LocationsStatesPage() {
   }, [debouncedSearch, includeInactive]);
 
   const listQuery = useQuery({
-    queryKey: ["adminStates", debouncedSearch, includeInactive, page, limit],
+    queryKey: ['adminStates', debouncedSearch, includeInactive, page, limit],
     queryFn: () =>
       listAdminStates({
         search: debouncedSearch,
@@ -114,14 +112,14 @@ export default function LocationsStatesPage() {
   const createMutation = useMutation({
     mutationFn: createAdminState,
     onSuccess: (res) => {
-      showToast(res.message ?? "State created.", "success");
-      setCreateInitialValues({ code: "", name: "", isActive: true });
-      void queryClient.invalidateQueries({ queryKey: ["adminStates"] });
+      showToast(res.message ?? 'State created.', 'success');
+      setCreateInitialValues({ code: '', name: '', isActive: true });
+      void queryClient.invalidateQueries({ queryKey: ['adminStates'] });
     },
     onError: (err) => {
       showToast(
-        err instanceof Error ? err.message : "Failed to create state.",
-        "error"
+        err instanceof Error ? err.message : 'Failed to create state.',
+        'error',
       );
     },
   });
@@ -129,12 +127,15 @@ export default function LocationsStatesPage() {
   const deleteMutation = useMutation({
     mutationFn: deleteAdminStatePermanently,
     onSuccess: (res) => {
-      showToast(res.message ?? "State deleted.", "success");
+      showToast(res.message ?? 'State deleted.', 'success');
       setDeleteTarget(null);
-      void queryClient.invalidateQueries({ queryKey: ["adminStates"] });
+      void queryClient.invalidateQueries({ queryKey: ['adminStates'] });
     },
     onError: (err) => {
-      showToast(err instanceof Error ? err.message : "Failed to delete state.", "error");
+      showToast(
+        err instanceof Error ? err.message : 'Failed to delete state.',
+        'error',
+      );
     },
   });
 
@@ -142,14 +143,14 @@ export default function LocationsStatesPage() {
     mutationFn: (args: { id: string; payload: StateFormData }) =>
       updateAdminState(args.id, args.payload),
     onSuccess: (res) => {
-      showToast(res.message ?? "State updated.", "success");
+      showToast(res.message ?? 'State updated.', 'success');
       setEditing(null);
-      void queryClient.invalidateQueries({ queryKey: ["adminStates"] });
+      void queryClient.invalidateQueries({ queryKey: ['adminStates'] });
     },
     onError: (err) => {
       showToast(
-        err instanceof Error ? err.message : "Failed to update state.",
-        "error"
+        err instanceof Error ? err.message : 'Failed to update state.',
+        'error',
       );
     },
   });
@@ -157,14 +158,14 @@ export default function LocationsStatesPage() {
   const deactivateMutation = useMutation({
     mutationFn: deactivateAdminState,
     onSuccess: (res) => {
-      showToast(res.message ?? "State deactivated.", "success");
+      showToast(res.message ?? 'State deactivated.', 'success');
       setDeactivateTarget(null);
-      void queryClient.invalidateQueries({ queryKey: ["adminStates"] });
+      void queryClient.invalidateQueries({ queryKey: ['adminStates'] });
     },
     onError: (err) => {
       showToast(
-        err instanceof Error ? err.message : "Failed to deactivate state.",
-        "error"
+        err instanceof Error ? err.message : 'Failed to deactivate state.',
+        'error',
       );
     },
   });
@@ -172,13 +173,16 @@ export default function LocationsStatesPage() {
   const bulkUploadMutation = useMutation({
     mutationFn: bulkUploadStates,
     onSuccess: () => {
-      showToast("States uploaded successfully.", "success");
+      showToast('States uploaded successfully.', 'success');
       setBulkOpen(false);
-      void queryClient.invalidateQueries({ queryKey: ["adminStates"] });
+      void queryClient.invalidateQueries({ queryKey: ['adminStates'] });
     },
     onError: (err) => {
-      showToast(err instanceof Error ? err.message : "Failed to upload states.", "error");
-    }
+      showToast(
+        err instanceof Error ? err.message : 'Failed to upload states.',
+        'error',
+      );
+    },
   });
 
   const items = listQuery.data?.data.items ?? [];
@@ -198,7 +202,9 @@ export default function LocationsStatesPage() {
           <div className="flex gap-2">
             {isAdmin && (
               <>
-                <Button variant="outline" onClick={() => setBulkOpen(true)}>Bulk Upload</Button>
+                <Button variant="outline" onClick={() => setBulkOpen(true)}>
+                  Bulk Upload
+                </Button>
                 <Button onClick={() => setCreateOpen(true)}>New state</Button>
               </>
             )}
@@ -238,7 +244,11 @@ export default function LocationsStatesPage() {
                   <TableHead>Code</TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Status</TableHead>
-                  {isAdmin && <TableHead className="w-[80px] text-right">Actions</TableHead>}
+                  {isAdmin && (
+                    <TableHead className="w-[80px] text-right">
+                      Actions
+                    </TableHead>
+                  )}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -275,7 +285,10 @@ export default function LocationsStatesPage() {
                           <DropdownMenu>
                             <DropdownMenuTrigger
                               aria-label="Open actions"
-                              className={buttonVariants({ size: "icon-xs", variant: "ghost" })}
+                              className={buttonVariants({
+                                size: 'icon-xs',
+                                variant: 'ghost',
+                              })}
                             >
                               <MoreHorizontalIcon className="size-3.5" />
                             </DropdownMenuTrigger>
@@ -335,7 +348,7 @@ export default function LocationsStatesPage() {
             <div className="text-xs text-destructive">
               {listQuery.error instanceof Error
                 ? listQuery.error.message
-                : "Failed to load states."}
+                : 'Failed to load states.'}
             </div>
           )}
         </CardContent>
@@ -366,8 +379,8 @@ export default function LocationsStatesPage() {
         title="Edit state"
         description="Update the state details."
         initialValues={{
-          code: editing?.code ?? "",
-          name: editing?.name ?? "",
+          code: editing?.code ?? '',
+          name: editing?.name ?? '',
           isActive: editing?.isActive ?? true,
         }}
         onSave={(data) => {
@@ -406,13 +419,16 @@ export default function LocationsStatesPage() {
               }
               disabled={deactivateMutation.isPending}
             >
-              {deactivateMutation.isPending ? "Deactivating…" : "Deactivate"}
+              {deactivateMutation.isPending ? 'Deactivating…' : 'Deactivate'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <Dialog open={Boolean(deleteTarget)} onOpenChange={(open) => (!open ? setDeleteTarget(null) : null)}>
+      <Dialog
+        open={Boolean(deleteTarget)}
+        onOpenChange={(open) => (!open ? setDeleteTarget(null) : null)}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Delete state permanently?</DialogTitle>
@@ -421,16 +437,22 @@ export default function LocationsStatesPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setDeleteTarget(null)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setDeleteTarget(null)}
+            >
               Cancel
             </Button>
             <Button
               type="button"
               variant="destructive"
-              onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}
+              onClick={() =>
+                deleteTarget && deleteMutation.mutate(deleteTarget.id)
+              }
               disabled={deleteMutation.isPending}
             >
-              {deleteMutation.isPending ? "Deleting…" : "Delete"}
+              {deleteMutation.isPending ? 'Deleting…' : 'Delete'}
             </Button>
           </DialogFooter>
         </DialogContent>

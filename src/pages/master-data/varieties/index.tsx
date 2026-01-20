@@ -1,9 +1,8 @@
-import * as React from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import * as React from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button, buttonVariants } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -11,18 +10,15 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import {
-  Field,
-  FieldLabel,
-} from "@/components/ui/field";
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Field, FieldLabel } from '@/components/ui/field';
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
-} from "@/components/ui/input-group";
-import { Checkbox } from "@/components/ui/checkbox";
+} from '@/components/ui/input-group';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -30,7 +26,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 
 import {
   DropdownMenu,
@@ -38,8 +34,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
-import { MoreHorizontalIcon } from "lucide-react";
+} from '@/components/ui/dropdown-menu';
+import { MoreHorizontalIcon } from 'lucide-react';
 
 import {
   AlertDialog,
@@ -50,29 +46,28 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+} from '@/components/ui/alert-dialog';
 
-import { useUiStore } from "@/store";
-import { listMasterRiceTypes } from "@/lib/masterRiceTypes";
+import { useUiStore } from '@/store';
+import { listMasterRiceTypes } from '@/lib/masterRiceTypes';
 import {
   createMasterRiceVariety,
   listMasterRiceVarieties,
   updateMasterRiceVariety,
   deleteMasterRiceVariety,
-} from "@/lib/masterRiceVarieties";
-import type { MasterRiceVariety } from "@/types/masterRiceVarieties";
-
+} from '@/lib/masterRiceVarieties';
+import type { MasterRiceVariety } from '@/types/masterRiceVarieties';
 
 import {
   CreateVarietyDialog,
   EditVarietyDialog,
   type VarietyFormData,
-} from "./VarietyDialog";
+} from './VarietyDialog';
 
 function ActiveBadge({ isActive }: { isActive: boolean }) {
   return (
-    <Badge variant={isActive ? "default" : "outline"}>
-      {isActive ? "Active" : "Inactive"}
+    <Badge variant={isActive ? 'default' : 'outline'}>
+      {isActive ? 'Active' : 'Inactive'}
     </Badge>
   );
 }
@@ -81,26 +76,37 @@ export default function VarietiesPage() {
   const { showToast } = useUiStore();
   const queryClient = useQueryClient();
 
-  const [search, setSearch] = React.useState("");
+  const [search, setSearch] = React.useState('');
   const [includeInactive, setIncludeInactive] = React.useState(false);
-  const [filterRiceTypeCode, setFilterRiceTypeCode] = React.useState<string>("ALL");
+  const [filterRiceTypeCode, setFilterRiceTypeCode] =
+    React.useState<string>('ALL');
 
   const [createOpen, setCreateOpen] = React.useState(false);
-  const [editItem, setEditItem] = React.useState<MasterRiceVariety | null>(null);
-  const [deleteItem, setDeleteItem] = React.useState<MasterRiceVariety | null>(null);
+  const [editItem, setEditItem] = React.useState<MasterRiceVariety | null>(
+    null,
+  );
+  const [deleteItem, setDeleteItem] = React.useState<MasterRiceVariety | null>(
+    null,
+  );
 
   const riceTypesQuery = useQuery({
-    queryKey: ["masterRiceTypes", "activeOnly"],
+    queryKey: ['masterRiceTypes', 'activeOnly'],
     queryFn: () => listMasterRiceTypes({ includeInactive: false }),
   });
 
   const varietiesQuery = useQuery({
-    queryKey: ["masterRiceVarieties", search, includeInactive, filterRiceTypeCode],
+    queryKey: [
+      'masterRiceVarieties',
+      search,
+      includeInactive,
+      filterRiceTypeCode,
+    ],
     queryFn: () =>
       listMasterRiceVarieties({
         search,
         includeInactive,
-        riceTypeCode: filterRiceTypeCode === "ALL" ? undefined : filterRiceTypeCode,
+        riceTypeCode:
+          filterRiceTypeCode === 'ALL' ? undefined : filterRiceTypeCode,
       }),
   });
 
@@ -119,14 +125,14 @@ export default function VarietiesPage() {
       return createMasterRiceVariety(payload);
     },
     onSuccess: (res) => {
-      showToast(res.message ?? "Rice variety saved.", "success");
-      void queryClient.invalidateQueries({ queryKey: ["masterRiceVarieties"] });
+      showToast(res.message ?? 'Rice variety saved.', 'success');
+      void queryClient.invalidateQueries({ queryKey: ['masterRiceVarieties'] });
       setCreateOpen(false);
       setEditItem(null);
     },
     onError: (err: unknown) => {
-      const message = err instanceof Error ? err.message : "Save failed.";
-      showToast(message, "error");
+      const message = err instanceof Error ? err.message : 'Save failed.';
+      showToast(message, 'error');
     },
   });
 
@@ -136,13 +142,13 @@ export default function VarietiesPage() {
     },
     onSuccess: (res) => {
       // @ts-expect-error message exists
-      showToast(res.message ?? "Rice variety deleted.", "success");
-      void queryClient.invalidateQueries({ queryKey: ["masterRiceVarieties"] });
+      showToast(res.message ?? 'Rice variety deleted.', 'success');
+      void queryClient.invalidateQueries({ queryKey: ['masterRiceVarieties'] });
       setDeleteItem(null);
     },
     onError: (err: unknown) => {
-      const message = err instanceof Error ? err.message : "Delete failed.";
-      showToast(message, "error");
+      const message = err instanceof Error ? err.message : 'Delete failed.';
+      showToast(message, 'error');
     },
   });
 
@@ -156,7 +162,8 @@ export default function VarietiesPage() {
           <div>
             <CardTitle>Varieties</CardTitle>
             <div className="text-sm text-muted-foreground">
-              Maintain the master list of rice varieties (example: Sona Masoori, HMT). Each variety belongs to a rice type.
+              Maintain the master list of rice varieties (example: Sona Masoori,
+              HMT). Each variety belongs to a rice type.
             </div>
           </div>
           <Button size="lg" onClick={() => setCreateOpen(true)}>
@@ -186,7 +193,7 @@ export default function VarietiesPage() {
               <FieldLabel>Rice type</FieldLabel>
               <Select
                 value={filterRiceTypeCode}
-                onValueChange={(value) => setFilterRiceTypeCode(value ?? "")}
+                onValueChange={(value) => setFilterRiceTypeCode(value ?? '')}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue />
@@ -219,9 +226,13 @@ export default function VarietiesPage() {
         {varietiesQuery.isLoading ? (
           <div className="text-sm text-muted-foreground">Loading…</div>
         ) : varietiesQuery.isError ? (
-          <div className="text-sm text-destructive">Failed to load varieties.</div>
+          <div className="text-sm text-destructive">
+            Failed to load varieties.
+          </div>
         ) : items.length === 0 ? (
-          <div className="text-sm text-muted-foreground">No varieties found.</div>
+          <div className="text-sm text-muted-foreground">
+            No varieties found.
+          </div>
         ) : (
           <Table>
             <TableHeader>
@@ -251,12 +262,17 @@ export default function VarietiesPage() {
                     <DropdownMenu>
                       <DropdownMenuTrigger
                         aria-label="Open actions"
-                        className={buttonVariants({ size: "icon-sm", variant: "ghost" })}
+                        className={buttonVariants({
+                          size: 'icon-sm',
+                          variant: 'ghost',
+                        })}
                       >
                         <MoreHorizontalIcon />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => setEditItem(v)}>Edit</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setEditItem(v)}>
+                          Edit
+                        </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           className="text-destructive focus:text-destructive"
@@ -290,18 +306,22 @@ export default function VarietiesPage() {
         onSave={(data) => saveMutation.mutate(data)}
       />
 
-      <AlertDialog open={!!deleteItem} onOpenChange={(open) => !open && setDeleteItem(null)}>
+      <AlertDialog
+        open={!!deleteItem}
+        onOpenChange={(open) => !open && setDeleteItem(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will delete the rice variety <strong>{deleteItem?.name}</strong>. This action cannot be undone.
+              This will delete the rice variety{' '}
+              <strong>{deleteItem?.name}</strong>. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              className={buttonVariants({ variant: "destructive" })}
+              className={buttonVariants({ variant: 'destructive' })}
               onClick={() => {
                 if (deleteItem) {
                   deleteMutation.mutate(deleteItem.id);
@@ -309,7 +329,7 @@ export default function VarietiesPage() {
               }}
               disabled={deleteMutation.isPending}
             >
-              {deleteMutation.isPending ? "Deleting..." : "Delete"}
+              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

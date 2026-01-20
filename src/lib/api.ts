@@ -1,4 +1,4 @@
-import { apiUrl } from "../config";
+import { apiUrl } from '../config';
 
 let authToken: string | null = null;
 let onUnauthorized: (() => void) | null = null;
@@ -19,7 +19,7 @@ export class ApiError extends Error {
 
   constructor(message: string, status: number, data: ApiErrorData) {
     super(message);
-    this.name = "ApiError";
+    this.name = 'ApiError';
     this.status = status;
     this.data = data;
   }
@@ -35,14 +35,14 @@ function safeJsonParse(text: string): unknown {
 }
 
 export async function apiFetch(path: string, init: RequestInit = {}) {
-  const url = path.startsWith("http") ? path : apiUrl(path);
+  const url = path.startsWith('http') ? path : apiUrl(path);
 
   const headers = new Headers(init.headers);
-  if (!headers.has("Content-Type") && !(init.body instanceof FormData)) {
-    headers.set("Content-Type", "application/json");
+  if (!headers.has('Content-Type') && !(init.body instanceof FormData)) {
+    headers.set('Content-Type', 'application/json');
   }
   if (authToken) {
-    headers.set("Authorization", `Bearer ${authToken}`);
+    headers.set('Authorization', `Bearer ${authToken}`);
   }
 
   const res = await fetch(url, { ...init, headers });
@@ -53,15 +53,15 @@ export async function apiFetch(path: string, init: RequestInit = {}) {
   if (res.status === 401) {
     if (onUnauthorized) onUnauthorized();
     const message =
-      typeof data === "object" && data !== null && "message" in data
+      typeof data === 'object' && data !== null && 'message' in data
         ? String((data as { message: unknown }).message)
-        : "Unauthorized";
+        : 'Unauthorized';
     throw new ApiError(message, 401, data);
   }
 
   if (!res.ok) {
     const message =
-      typeof data === "object" && data !== null && "message" in data
+      typeof data === 'object' && data !== null && 'message' in data
         ? String((data as { message: unknown }).message)
         : res.statusText;
     throw new ApiError(message, res.status, data);

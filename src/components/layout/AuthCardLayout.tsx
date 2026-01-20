@@ -1,9 +1,9 @@
-import type * as React from "react";
+import type * as React from 'react';
 
-import { cn } from "@/lib/utils";
-import { Card, CardContent } from "@/components/ui/card";
+import { cn } from '@/lib/utils';
+import { Card, CardContent } from '@/components/ui/card';
 
-type AuthCardLayoutProps = React.ComponentProps<"div"> & {
+type AuthCardLayoutProps = React.ComponentProps<'div'> & {
   title: string;
   subtitle?: string;
   imageSrc?: string;
@@ -24,8 +24,8 @@ export function AuthCardLayout({
   return (
     <div
       className={cn(
-        "flex min-h-screen w-full items-center justify-center bg-background p-4 text-foreground",
-        className
+        'flex min-h-screen w-full items-center justify-center bg-background p-4 text-foreground',
+        className,
       )}
       {...props}
     >
@@ -36,7 +36,9 @@ export function AuthCardLayout({
               <div className="flex flex-col items-center gap-2 text-center">
                 <h1 className="text-2xl font-semibold">{title}</h1>
                 {subtitle ? (
-                  <p className="text-muted-foreground text-balance">{subtitle}</p>
+                  <p className="text-muted-foreground text-balance">
+                    {subtitle}
+                  </p>
                 ) : null}
               </div>
               <div className="mt-6">{children}</div>
@@ -45,7 +47,7 @@ export function AuthCardLayout({
               {imageSrc ? (
                 <img
                   src={imageSrc}
-                  alt={imageAlt ?? ""}
+                  alt={imageAlt ?? ''}
                   className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
                 />
               ) : (

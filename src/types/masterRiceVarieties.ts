@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 export const RiceTypeRefSchema = z.object({
   id: z.string(),
@@ -39,9 +39,9 @@ export type MasterRiceVarietyResponse = z.infer<
 >;
 
 export const UpsertMasterRiceVarietyRequestSchema = z.object({
-  name: z.string().min(1, "Enter a name."),
+  name: z.string().min(1, 'Enter a name.'),
   description: z.string().optional(),
-  riceTypeCode: z.string().min(1, "Select a rice type."),
+  riceTypeCode: z.string().min(1, 'Select a rice type.'),
   isActive: z.boolean().optional(),
 });
 

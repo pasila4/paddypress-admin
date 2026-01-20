@@ -1,10 +1,10 @@
-import * as React from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import * as React from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { MoreHorizontalIcon } from "lucide-react";
+import { MoreHorizontalIcon } from 'lucide-react';
 
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button, buttonVariants } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -12,16 +12,13 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import {
-  Field,
-  FieldLabel,
-} from "@/components/ui/field";
+} from '@/components/ui/table';
+import { Field, FieldLabel } from '@/components/ui/field';
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
-} from "@/components/ui/input-group";
+} from '@/components/ui/input-group';
 
 import {
   Dialog,
@@ -30,7 +27,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,21 +37,21 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+} from '@/components/ui/alert-dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu';
 
-import { Textarea } from "@/components/ui/textarea";
+import { Textarea } from '@/components/ui/textarea';
 
-import { LocationSearchCombobox } from "@/components/ui/location-search-combobox";
+import { LocationSearchCombobox } from '@/components/ui/location-search-combobox';
 
-import { useUiStore } from "@/store";
-import { useAuth } from "@/context/AuthContext";
-import { useDebounce } from "@/lib/useDebounce";
+import { useUiStore } from '@/store';
+import { useAuth } from '@/context/AuthContext';
+import { useDebounce } from '@/lib/useDebounce';
 import {
   listAdminMandals,
   createAdminMandal,
@@ -62,14 +59,12 @@ import {
   deactivateAdminMandal,
   deleteAdminMandalPermanently,
   bulkUploadMandals,
-} from "@/lib/adminLocations";
-import type { AdminMandal } from "@/types/adminLocations";
+} from '@/lib/adminLocations';
+import type { AdminMandal } from '@/types/adminLocations';
 
 const DEFAULT_PAGE_SIZE = 10;
 
-import {
-  LocationsMandalDialog,
-} from "./LocationsMandalDialog";
+import { LocationsMandalDialog } from './LocationsMandalDialog';
 
 function BulkUploadMandalsDialog({
   open,
@@ -82,13 +77,13 @@ function BulkUploadMandalsDialog({
   onUpload: (parentId: string, items: string) => void;
   isUploading: boolean;
 }) {
-  const [districtId, setDistrictId] = React.useState("");
-  const [items, setItems] = React.useState("");
+  const [districtId, setDistrictId] = React.useState('');
+  const [items, setItems] = React.useState('');
 
   React.useEffect(() => {
     if (!open) {
-      setDistrictId("");
-      setItems("");
+      setDistrictId('');
+      setItems('');
     }
   }, [open]);
 
@@ -97,7 +92,9 @@ function BulkUploadMandalsDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Bulk Upload Mandals</DialogTitle>
-          <DialogDescription>Select district and enter comma separated mandal names.</DialogDescription>
+          <DialogDescription>
+            Select district and enter comma separated mandal names.
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <Field>
@@ -113,19 +110,21 @@ function BulkUploadMandalsDialog({
             <FieldLabel>Mandals (comma separated)</FieldLabel>
             <Textarea
               value={items}
-              onChange={e => setItems(e.target.value)}
+              onChange={(e) => setItems(e.target.value)}
               placeholder="Mandal 1, Mandal 2..."
               rows={5}
             />
           </Field>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
           <Button
             onClick={() => onUpload(districtId, items)}
             disabled={!districtId || !items.trim() || isUploading}
           >
-            {isUploading ? "Uploading..." : "Upload"}
+            {isUploading ? 'Uploading...' : 'Upload'}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -135,74 +134,90 @@ function BulkUploadMandalsDialog({
 
 export default function LocationsMandalsPage() {
   const { user } = useAuth();
-  const isAdmin = user?.role === "ADMIN";
+  const isAdmin = user?.role === 'ADMIN';
   const { showToast } = useUiStore();
   const queryClient = useQueryClient();
   const [page, setPage] = React.useState(1);
-  const [search, setSearch] = React.useState("");
-  const [districtFilter, setDistrictFilter] = React.useState("");
+  const [search, setSearch] = React.useState('');
+  const [districtFilter, setDistrictFilter] = React.useState('');
 
   const debouncedSearch = useDebounce(search, 300);
 
   const [createOpen, setCreateOpen] = React.useState(false);
   const [bulkOpen, setBulkOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<AdminMandal | null>(null);
-  const [deactivateTarget, setDeactivateTarget] = React.useState<AdminMandal | null>(null);
-  const [deleteTarget, setDeleteTarget] = React.useState<AdminMandal | null>(null);
+  const [deactivateTarget, setDeactivateTarget] =
+    React.useState<AdminMandal | null>(null);
+  const [deleteTarget, setDeleteTarget] = React.useState<AdminMandal | null>(
+    null,
+  );
 
   const query = useQuery({
-    queryKey: ["adminMandals", page, debouncedSearch, districtFilter],
-    queryFn: () => listAdminMandals({ page, limit: DEFAULT_PAGE_SIZE, search: debouncedSearch, districtId: districtFilter }),
+    queryKey: ['adminMandals', page, debouncedSearch, districtFilter],
+    queryFn: () =>
+      listAdminMandals({
+        page,
+        limit: DEFAULT_PAGE_SIZE,
+        search: debouncedSearch,
+        districtId: districtFilter,
+      }),
   });
 
   const createMutation = useMutation({
     mutationFn: createAdminMandal,
     onSuccess: () => {
-      showToast("Mandal created.", "success");
+      showToast('Mandal created.', 'success');
       setCreateOpen(false);
-      queryClient.invalidateQueries({ queryKey: ["adminMandals"] });
+      queryClient.invalidateQueries({ queryKey: ['adminMandals'] });
     },
-    onError: (err) => showToast(err instanceof Error ? err.message : "Failed.", "error"),
+    onError: (err) =>
+      showToast(err instanceof Error ? err.message : 'Failed.', 'error'),
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data: { id: string, payload: any }) => updateAdminMandal(data.id, data.payload),
+    mutationFn: (data: { id: string; payload: any }) =>
+      updateAdminMandal(data.id, data.payload),
     onSuccess: () => {
-      showToast("Mandal updated.", "success");
+      showToast('Mandal updated.', 'success');
       setEditing(null);
-      queryClient.invalidateQueries({ queryKey: ["adminMandals"] });
+      queryClient.invalidateQueries({ queryKey: ['adminMandals'] });
     },
-    onError: (err) => showToast(err instanceof Error ? err.message : "Failed.", "error"),
+    onError: (err) =>
+      showToast(err instanceof Error ? err.message : 'Failed.', 'error'),
   });
 
   const deactivateMutation = useMutation({
     mutationFn: deactivateAdminMandal,
     onSuccess: () => {
-      showToast("Mandal deactivated.", "success");
+      showToast('Mandal deactivated.', 'success');
       setDeactivateTarget(null);
-      queryClient.invalidateQueries({ queryKey: ["adminMandals"] });
+      queryClient.invalidateQueries({ queryKey: ['adminMandals'] });
     },
-    onError: (err) => showToast(err instanceof Error ? err.message : "Failed.", "error"),
+    onError: (err) =>
+      showToast(err instanceof Error ? err.message : 'Failed.', 'error'),
   });
 
   const deleteMutation = useMutation({
     mutationFn: deleteAdminMandalPermanently,
     onSuccess: () => {
-      showToast("Mandal deleted.", "success");
+      showToast('Mandal deleted.', 'success');
       setDeleteTarget(null);
-      queryClient.invalidateQueries({ queryKey: ["adminMandals"] });
+      queryClient.invalidateQueries({ queryKey: ['adminMandals'] });
     },
-    onError: (err) => showToast(err instanceof Error ? err.message : "Failed.", "error"),
+    onError: (err) =>
+      showToast(err instanceof Error ? err.message : 'Failed.', 'error'),
   });
 
   const bulkUploadMutation = useMutation({
-    mutationFn: (data: { parentId: string, items: string }) => bulkUploadMandals(data.parentId, data.items),
+    mutationFn: (data: { parentId: string; items: string }) =>
+      bulkUploadMandals(data.parentId, data.items),
     onSuccess: () => {
-      showToast("Mandals uploaded.", "success");
+      showToast('Mandals uploaded.', 'success');
       setBulkOpen(false);
-      queryClient.invalidateQueries({ queryKey: ["adminMandals"] });
+      queryClient.invalidateQueries({ queryKey: ['adminMandals'] });
     },
-    onError: (err) => showToast(err instanceof Error ? err.message : "Failed.", "error"),
+    onError: (err) =>
+      showToast(err instanceof Error ? err.message : 'Failed.', 'error'),
   });
 
   const items = query.data?.data?.items ?? [];
@@ -217,7 +232,9 @@ export default function LocationsMandalsPage() {
           <div className="flex gap-2">
             {isAdmin && (
               <>
-                <Button variant="outline" onClick={() => setBulkOpen(true)}>Bulk Upload</Button>
+                <Button variant="outline" onClick={() => setBulkOpen(true)}>
+                  Bulk Upload
+                </Button>
                 <Button onClick={() => setCreateOpen(true)}>New Mandal</Button>
               </>
             )}
@@ -227,7 +244,11 @@ export default function LocationsMandalsPage() {
           <div className="flex gap-4 flex-wrap">
             <InputGroup className="w-[200px]">
               <InputGroupAddon>Search</InputGroupAddon>
-              <InputGroupInput value={search} onChange={e => setSearch(e.target.value)} placeholder="Search..." />
+              <InputGroupInput
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search..."
+              />
             </InputGroup>
             <div className="w-[240px]">
               <LocationSearchCombobox
@@ -248,35 +269,64 @@ export default function LocationsMandalsPage() {
                   <TableHead>District</TableHead>
                   <TableHead>State</TableHead>
                   <TableHead>Status</TableHead>
-                  {isAdmin && <TableHead className="text-right">Actions</TableHead>}
+                  {isAdmin && (
+                    <TableHead className="text-right">Actions</TableHead>
+                  )}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {query.isLoading ? (
-                  <TableRow><TableCell colSpan={6} className="text-center">Loading...</TableCell></TableRow>
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center">
+                      Loading...
+                    </TableCell>
+                  </TableRow>
                 ) : items.length === 0 ? (
-                  <TableRow><TableCell colSpan={6} className="text-center">No mandals found.</TableCell></TableRow>
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center">
+                      No mandals found.
+                    </TableCell>
+                  </TableRow>
                 ) : (
-                  items.map(item => (
+                  items.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell>{item.name}</TableCell>
-                      <TableCell>{item.code || "-"}</TableCell>
-                      <TableCell>{item.district?.name || "-"}</TableCell>
-                      <TableCell>{item.district?.state?.name || "-"}</TableCell>
-                      <TableCell>{item.isActive ? "Active" : "Inactive"}</TableCell>
+                      <TableCell>{item.code || '-'}</TableCell>
+                      <TableCell>{item.district?.name || '-'}</TableCell>
+                      <TableCell>{item.district?.state?.name || '-'}</TableCell>
+                      <TableCell>
+                        {item.isActive ? 'Active' : 'Inactive'}
+                      </TableCell>
                       {isAdmin && (
                         <TableCell className="text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger
                               aria-label="Open actions"
-                              className={buttonVariants({ size: "icon-sm", variant: "ghost" })}
+                              className={buttonVariants({
+                                size: 'icon-sm',
+                                variant: 'ghost',
+                              })}
                             >
                               <MoreHorizontalIcon className="size-4" />
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => setEditing(item)}>Edit</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => setDeactivateTarget(item)} disabled={!item.isActive}>Deactivate</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => setDeleteTarget(item)} className="text-destructive">Delete</DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => setEditing(item)}
+                              >
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => setDeactivateTarget(item)}
+                                disabled={!item.isActive}
+                              >
+                                Deactivate
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => setDeleteTarget(item)}
+                                className="text-destructive"
+                              >
+                                Delete
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
@@ -292,8 +342,22 @@ export default function LocationsMandalsPage() {
               Page {page} of {totalPages} · {total} total
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1}>Previous</Button>
-              <Button variant="outline" size="sm" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages}>Next</Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages}
+              >
+                Next
+              </Button>
             </div>
           </div>
         </CardContent>
@@ -303,7 +367,7 @@ export default function LocationsMandalsPage() {
         open={createOpen}
         onOpenChange={setCreateOpen}
         title="New Mandal"
-        initialValues={{ districtId: "", name: "", isActive: true }}
+        initialValues={{ districtId: '', name: '', isActive: true }}
         onSave={(data) => {
           const payload = { ...data };
           if (!payload.code) {
@@ -322,10 +386,12 @@ export default function LocationsMandalsPage() {
           initialValues={{
             districtId: editing.districtId,
             name: editing.name,
-            code: editing.code || "",
-            isActive: editing.isActive
+            code: editing.code || '',
+            isActive: editing.isActive,
           }}
-          onSave={(data) => updateMutation.mutate({ id: editing.id, payload: data })}
+          onSave={(data) =>
+            updateMutation.mutate({ id: editing.id, payload: data })
+          }
           isSaving={updateMutation.isPending}
         />
       )}
@@ -333,31 +399,56 @@ export default function LocationsMandalsPage() {
       <BulkUploadMandalsDialog
         open={bulkOpen}
         onOpenChange={setBulkOpen}
-        onUpload={(pid, txt) => bulkUploadMutation.mutate({ parentId: pid, items: txt })}
+        onUpload={(pid, txt) =>
+          bulkUploadMutation.mutate({ parentId: pid, items: txt })
+        }
         isUploading={bulkUploadMutation.isPending}
       />
-      <AlertDialog open={!!deactivateTarget} onOpenChange={(o) => !o && setDeactivateTarget(null)}>
+      <AlertDialog
+        open={!!deactivateTarget}
+        onOpenChange={(o) => !o && setDeactivateTarget(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Deactivate Mandal?</AlertDialogTitle>
-            <AlertDialogDescription>This will deactivate the mandal.</AlertDialogDescription>
+            <AlertDialogDescription>
+              This will deactivate the mandal.
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => deactivateTarget && deactivateMutation.mutate(deactivateTarget.id)}>Deactivate</AlertDialogAction>
+            <AlertDialogAction
+              onClick={() =>
+                deactivateTarget &&
+                deactivateMutation.mutate(deactivateTarget.id)
+              }
+            >
+              Deactivate
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
+      <AlertDialog
+        open={!!deleteTarget}
+        onOpenChange={(o) => !o && setDeleteTarget(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Mandal?</AlertDialogTitle>
-            <AlertDialogDescription>Permanently delete mandal?</AlertDialogDescription>
+            <AlertDialogDescription>
+              Permanently delete mandal?
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}>Delete</AlertDialogAction>
+            <AlertDialogAction
+              onClick={() =>
+                deleteTarget && deleteMutation.mutate(deleteTarget.id)
+              }
+            >
+              Delete
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

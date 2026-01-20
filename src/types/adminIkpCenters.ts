@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 export const AdminIkpCenterSchema = z.object({
   id: z.string(),
@@ -30,7 +30,9 @@ export const AdminIkpCentersListResponseSchema = z.object({
   message: z.string().optional(),
 });
 
-export type AdminIkpCentersListResponse = z.infer<typeof AdminIkpCentersListResponseSchema>;
+export type AdminIkpCentersListResponse = z.infer<
+  typeof AdminIkpCentersListResponseSchema
+>;
 
 export const AdminIkpCenterResponseSchema = z.object({
   success: z.boolean(),
@@ -38,7 +40,9 @@ export const AdminIkpCenterResponseSchema = z.object({
   message: z.string().optional(),
 });
 
-export type AdminIkpCenterResponse = z.infer<typeof AdminIkpCenterResponseSchema>;
+export type AdminIkpCenterResponse = z.infer<
+  typeof AdminIkpCenterResponseSchema
+>;
 
 export const AdminIkpCenterLocationsResponseSchema = z.object({
   success: z.boolean(),
@@ -48,17 +52,24 @@ export const AdminIkpCenterLocationsResponseSchema = z.object({
   message: z.string().optional(),
 });
 
-export type AdminIkpCenterLocationsResponse = z.infer<typeof AdminIkpCenterLocationsResponseSchema>;
+export type AdminIkpCenterLocationsResponse = z.infer<
+  typeof AdminIkpCenterLocationsResponseSchema
+>;
 
 export const CreateAdminIkpCenterRequestSchema = z.object({
-  villageId: z.string().min(1, "Select a village."),
-  name: z.string().min(1, "Enter a center name."),
+  villageId: z.string().min(1, 'Select a village.'),
+  name: z.string().min(1, 'Enter a center name.'),
   notes: z.string().optional(),
   isActive: z.boolean().optional(),
 });
 
-export type CreateAdminIkpCenterRequest = z.infer<typeof CreateAdminIkpCenterRequestSchema>;
+export type CreateAdminIkpCenterRequest = z.infer<
+  typeof CreateAdminIkpCenterRequestSchema
+>;
 
-export const UpdateAdminIkpCenterRequestSchema = CreateAdminIkpCenterRequestSchema.partial();
+export const UpdateAdminIkpCenterRequestSchema =
+  CreateAdminIkpCenterRequestSchema.partial();
 
-export type UpdateAdminIkpCenterRequest = z.infer<typeof UpdateAdminIkpCenterRequestSchema>;
+export type UpdateAdminIkpCenterRequest = z.infer<
+  typeof UpdateAdminIkpCenterRequestSchema
+>;
