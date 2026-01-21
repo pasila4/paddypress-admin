@@ -1,10 +1,10 @@
-import * as React from 'react';
 import { useMutation } from '@tanstack/react-query';
+import * as React from 'react';
 
-import { applyToken, loginApi } from '../lib/auth';
 import { setOnUnauthorized } from '../lib/api';
-import type { User } from '../types/auth';
+import { applyToken, loginApi } from '../lib/auth';
 import { useAuthStore, useUiStore } from '../store';
+import type { User } from '../types/auth';
 
 interface AuthContextValue {
   token: string | null;
@@ -52,7 +52,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       user,
       isAuthenticated,
       async login(email, password, remember) {
-        const res = await loginMutation.mutateAsync({ email, password });
+        const res = await loginMutation.mutateAsync({
+          email,
+          password,
+          portal: 'admin',
+        });
 
         applyToken(res.data.token);
         setSession(

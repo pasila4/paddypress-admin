@@ -15,6 +15,7 @@ export type User = z.infer<typeof UserSchema>;
 export const LoginRequestSchema = z.object({
   email: z.string().min(1, 'Enter your email.'),
   password: z.string().min(1, 'Enter your password.'),
+  portal: z.string().optional(),
 });
 
 export type LoginRequest = z.infer<typeof LoginRequestSchema>;
